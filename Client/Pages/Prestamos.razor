@@ -1,10 +1,11 @@
 @page "/prestamos"
-
-
-
+@inject NavigationManager NavigationManager
 @using MudBlazor
 
-<MudContainer MaxWidth="MaxWidth.Medium">
+
+
+
+@* <MudContainer MaxWidth="MaxWidth.Medium">
     <MudStack Row Class="justify-space-between mud-width-full">
     <MudStack Style="width: 300px">
         @foreach (var variant in Enum.GetValues(typeof(Variant)).Cast<Variant>())
@@ -32,10 +33,108 @@
 
 </MudStack>
 
-</MudContainer>
+</MudContainer> *@
 
 
+<MudGrid Class="mt-5" Justify="Justify.Center">
+        <MudItem xs = "10" >
+            <MudPaper>
+                <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary"
+                @onclick="NavegarARegistrar">Agregar Prestamo</MudButton>
+                <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Secondary"
+                @onclick="NavegarADevolver">Devolver Prestamo</MudButton>
+            </MudPaper>
+     
+           <MudTable Items="@PrestamosH.Take(4)" Hover="true" Breakpoint="Breakpoint.Sm"  LoadingProgressColor="Color.Info">
+            <HeaderContent>
+                <MudTh>Id</MudTh>
+                <MudTh>IdHerramienta</MudTh>
+                <MudTh>CodigoEncargado</MudTh>
+                <MudTh>NombreEncargado</MudTh>
+                <MudTh>FechaSolicitud</MudTh>
+            </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Id">@context.Id</MudTd>
+                    <MudTd DataLabel="IdHerramienta">@context.IdHerramienta</MudTd>
+                    <MudTd DataLabel="CodigoEncargado">@context.CodigoEncargado</MudTd>
+                    <MudTd DataLabel="NombreEncargado">@context.NombreEncargado</MudTd>
+                    <MudTd DataLabel="FechaSolicitud">
+                        @context.FechaSolicitud.ToString("dd/MM/yyyy")
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudItem>
+
+</MudGrid>
 @code {
+    private IEnumerable<Prestamo> PrestamosH = new List<Prestamo>
+    {
+        new Prestamo
+        {
+            Id = 1,
+            IdHerramienta = 101,
+            CodigoEncargado = "EMP001",
+            NombreEncargado = "Juan Pérez",
+            FechaSolicitud = DateTime.Today.AddDays(-3)
+        },
+        new Prestamo
+        {
+            Id = 2,
+            IdHerramienta = 205,
+            CodigoEncargado = "EMP002",
+            NombreEncargado = "María López",
+            FechaSolicitud = DateTime.Today.AddDays(-2)
+        },
+        new Prestamo
+        {
+            Id = 3,
+            IdHerramienta = 309,
+            CodigoEncargado = "EMP003",
+            NombreEncargado = "Carlos Hernández",
+            FechaSolicitud = DateTime.Today.AddDays(-1)
+        },
+        new Prestamo
+        {
+            Id = 4,
+            IdHerramienta = 412,
+            CodigoEncargado = "EMP004",
+            NombreEncargado = "Ana Torres",
+            FechaSolicitud = DateTime.Today
+        }
+    };
+
+    private void NavegarARegistrar()
+    {
+        NavigationManager.NavigateTo("/RegistrarPrestamo");
+    }
+
+    private void NavegarADevolver()
+    {
+        NavigationManager.NavigateTo("/DevolverPrestamo");
+    }
+
+
+
+
+     class Prestamo
+    {
+        public int Id { get; set; }
+        public int IdHerramienta { get; set; }
+        public string CodigoEncargado { get; set; }
+        public string NombreEncargado { get; set; }
+        public DateTime FechaSolicitud { get; set; }
+    }
+    
+}
+
+
+
+    
+
+
+
+
+@* @code {
     private string _value;
     private Margin _margin;
     private bool _dense;
@@ -61,5 +160,5 @@
         "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
         "Washington", "West Virginia", "Wisconsin", "Wyoming"
     };
-}
+} *@
 

@@ -1,0 +1,79 @@
+﻿@page "/RegistrarPrestamo"
+@using MudBlazor
+
+@* @using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations *@
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <h3>Registrar Prestamo</h3>
+            <MudForm Spacing="9">
+                <MudSelect T="string" Label="Codigo Del Operario" MultiSelection="false" >
+                    @foreach (var codigo in _codigos)
+                    {
+                        <MudSelectItem T="string" Value="@codigo">@codigo</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="string" Label="Escoge la(s) herramientas" MultiSelection="true" @bind-Value="_value" @bind-SelectedValues="_options">
+                    @foreach (var state in _states)
+                    {
+                        <MudSelectItem T="string" Value="@state">@state</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField T="string" Label="NIP" InputType="InputType.Password" />
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Registrar</MudButton>
+                </MudCardActions>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    
+    private string _value = "Nada ha sido seleccionado";
+    private IEnumerable<string> _options = new HashSet<string> {};
+    private readonly string[] _states =new[]
+    {
+    "Martillo",
+    "Destornillador plano",
+    "Destornillador de cruz",
+    "Llave inglesa",
+    "Llave de matraca",
+    "Juego de dados",
+    "Pinzas universales",
+    "Pinzas de punta",
+    "Taladro eléctrico",
+    "Brocas",
+    "Sierra manual",
+    "Sierra eléctrica",
+    "Esmeril",
+    "Lijadora",
+    "Cinta métrica",
+    "Nivel de burbuja",
+    "Prensa tipo C",
+    "Gato hidráulico",
+    "Compresor de aire",
+    "Soldadora"
+};
+    private readonly string[] _codigos = new[]
+{
+    "OPR001",
+    "OPR002",
+    "OPR003",
+    "OPR004",
+    "OPR005",
+    "OPR006",
+    "OPR007",
+    "OPR008",
+    "OPR009",
+    "OPR010"
+};
+
+}
+@code {
+
+}

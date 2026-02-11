@@ -1,0 +1,62 @@
+﻿@page "/DevolverPrestamo"
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <h3>Devolver Prestamo(s)</h3>
+            <MudForm Spacing="9">
+                <MudSelect T="string" Label="Codigo Del Operario" MultiSelection="false">
+                    @foreach (var codigo in _codigos)
+                    {
+                        <MudSelectItem T="string" Value="@codigo">@codigo</MudSelectItem>
+                    }
+                    @foreach (var state in _states)
+                    {
+                        <MudCheckBox T="bool"
+                                     @bind-Value="Basic_CheckBox2"
+                                     Color="Color.Primary"
+                                     UncheckedColor="Color.Default"
+                                     Label="@state">
+                        </MudCheckBox>
+
+                    }
+                </MudSelect>
+                <MudTextField T="string" Label="NIP" InputType="InputType.Password" />
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Devolver</MudButton>
+                </MudCardActions>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+@code {
+    public bool Basic_CheckBox2 { get; set; } = false;
+    private string _value = "Nada ha sido seleccionado";
+    private IEnumerable<string> _options = new HashSet<string> { };
+    private readonly string[] _states = new[]
+    {
+    "Martillo",
+    "Destornillador plano",
+    "Destornillador de cruz",
+    "Llave inglesa",
+    "Llave de matraca",
+    "Juego de dados",
+    "Pinzas universales",
+    "Pinzas de punta",
+    
+};
+    private readonly string[] _codigos = new[]
+{
+    "OPR001",
+    "OPR002",
+    "OPR003",
+    "OPR004",
+    "OPR005",
+    "OPR006",
+    "OPR007",
+    "OPR008",
+    "OPR009",
+    "OPR010"
+};
+    
+}
