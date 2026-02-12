@@ -5,27 +5,27 @@ namespace AdminHerramientas.Server.Models;
 
 public partial class Prestamo
 {
-    public int IdPrestamos { get; set; }
+    public int PrsIdPrestamos { get; set; }
 
-    public string FkCodigoOperario { get; set; } = null!;
+    public string PrsFkCodigoOperario { get; set; } = null!;
 
-    public int FkIdHerramienta { get; set; }
+    public int PrsFkIdHerramienta { get; set; }
 
-    public string FkCodigoEncargado { get; set; } = null!;
+    public string PrsFkCodigoEncargado { get; set; } = null!;
 
-    public string Motivo { get; set; } = null!;
+    public string PrsMotivo { get; set; } = null!;
 
-    public string CodigoServicio { get; set; } = null!;
+    public string PrsCodigoServicio { get; set; } = null!;
 
-    public DateTime? FechaSolicitud { get; set; }
+    public DateTime PrsFechaSolicitud { get; set; }
 
-    public DateTime? FechaEntrega { get; set; }
+    public DateTime? PrsFechaEntrega { get; set; }
 
-    public string? Comentario { get; set; }
+    public string? PrsComentario { get; set; }
 
-    public virtual Operario FkCodigoEncargadoNavigation { get; set; } = null!;
+    public virtual Operario PrsFkCodigoEncargadoNavigation { get; set; } = null!;
 
-    public virtual Operario FkCodigoOperarioNavigation { get; set; } = null!;
+    public virtual Operario PrsFkCodigoOperarioNavigation { get; set; } = null!;
 
-    public virtual Herramienta FkIdHerramientaNavigation { get; set; } = null!;
+    public virtual Herramienta PrsFkIdHerramientaNavigation { get; set; } = null!;
 }

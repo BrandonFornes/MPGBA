@@ -5,11 +5,11 @@ namespace AdminHerramientas.Server.Models;
 
 public partial class Nip
 {
-    public int Id { get; set; }
+    public int NipId { get; set; }
 
-    public string FkCodigoOperario { get; set; } = null!;
+    public string NipFkCodigoOperario { get; set; } = null!;
 
-    public string Nip1 { get; set; } = null!;
+    public string NipNip { get; set; } = null!;
 
-    public virtual Operario FkCodigoOperarioNavigation { get; set; } = null!;
+    public virtual Operario NipFkCodigoOperarioNavigation { get; set; } = null!;
 }

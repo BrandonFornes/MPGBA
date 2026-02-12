@@ -1,0 +1,48 @@
+﻿@page "/CrearHerramienta"
+    
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <h3>Crear Herramienta</h3>
+            <MudForm Spacing="9">
+                <MudTextField @bind-Value="Nombre" Label="Nombre de Herramienta" Variant="Variant.Text"></MudTextField>
+
+                <MudTextField @bind-Value="Etiqueta" Label="Etiqueta" Variant="Variant.Text"></MudTextField>
+
+                <MudTextField @bind-Value="Descripcion" Label="Descripcion (Opcional)" Variant="Variant.Text"></MudTextField>
+
+                <MudSelect T="string" Label="Tipo de Herramienta" MultiSelection="false" @bind-Value="_value" @bind-SelectedValue="_options">
+                    @foreach (var state in _states)
+                    {
+                        <MudSelectItem T="string" Value="@state">@state</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Fecha de Compra" InputType="InputType.Date" />
+
+                <MudTextField @bind-Value="Marca" Label="Marca de Herramienta" Variant="Variant.Text"></MudTextField>
+
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary " Class="ml-auto">CREAR</MudButton>
+                </MudCardActions>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    public string Nombre { get; set; }
+    public string Etiqueta { get; set; }
+    public string Descripcion { get; set; }
+    public string Marca { get; set; }
+    private string _value = "";
+    private IEnumerable<string> _options = new HashSet<string> { };
+    private readonly string[] _states = new[]
+    {
+    "Manual",
+    "Eléctricas",
+    "Neumáticas",
+    "Hidráulicas",
+    "Medicion",
+};
+}

@@ -5,11 +5,11 @@ namespace AdminHerramientas.Server.Models;
 
 public partial class Marca
 {
-    public int Id { get; set; }
+    public int MrcId { get; set; }
 
-    public string NombreMarca { get; set; } = null!;
+    public string MrcNombreMarca { get; set; } = null!;
 
-    public int? Intervalo { get; set; }
+    public int? MrcIntervalo { get; set; }
 
-    public virtual ICollection<Vehiculo> Vehiculos { get; } = new List<Vehiculo>();
+    public virtual ICollection<Modelo> Modelos { get; } = new List<Modelo>();
 }

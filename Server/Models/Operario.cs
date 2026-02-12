@@ -21,9 +21,9 @@ public partial class Operario
 
     public virtual ICollection<Nip> Nips { get; } = new List<Nip>();
 
-    public virtual ICollection<Prestamo> PrestamoFkCodigoEncargadoNavigations { get; } = new List<Prestamo>();
+    public virtual ICollection<Prestamo> PrestamoPrsFkCodigoEncargadoNavigations { get; } = new List<Prestamo>();
 
-    public virtual ICollection<Prestamo> PrestamoFkCodigoOperarioNavigations { get; } = new List<Prestamo>();
+    public virtual ICollection<Prestamo> PrestamoPrsFkCodigoOperarioNavigations { get; } = new List<Prestamo>();
 
     public virtual ICollection<RegistrosLavado> RegistrosLavados { get; } = new List<RegistrosLavado>();
 }

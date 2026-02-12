@@ -40,9 +40,9 @@
         <MudItem xs = "10" >
             <MudPaper>
                 <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary"
-                @onclick="NavegarARegistrar">Agregar Prestamo</MudButton>
+                            @onclick="NavegarARegistrarPrestamo">Agregar Prestamo</MudButton>
                 <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Secondary"
-                @onclick="NavegarADevolver">Devolver Prestamo</MudButton>
+                            @onclick="NavegarADevolverPrestamo">Devolver Prestamo</MudButton>
             </MudPaper>
      
            <MudTable Items="@PrestamosH.Take(4)" Hover="true" Breakpoint="Breakpoint.Sm"  LoadingProgressColor="Color.Info">
@@ -103,12 +103,12 @@
         }
     };
 
-    private void NavegarARegistrar()
+    private void NavegarARegistrarPrestamo()
     {
         NavigationManager.NavigateTo("/RegistrarPrestamo");
     }
 
-    private void NavegarADevolver()
+    private void NavegarADevolverPrestamo()
     {
         NavigationManager.NavigateTo("/DevolverPrestamo");
     }

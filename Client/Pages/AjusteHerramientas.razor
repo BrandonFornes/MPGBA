@@ -1,0 +1,61 @@
+﻿@page "/AjusteHerramientas"
+@using MudBlazor
+@inject NavigationManager NavigationManager
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+        <h3>AjusteHerramientas</h3>
+        <MudPaper>
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary"
+                       @onclick="NavegarCrearHerramienta">Crear Herramienta</MudButton>
+        </MudPaper>
+
+        <MudSimpleTable Style="overflow-x: auto;">
+            <thead>
+                <tr>
+                    @foreach (var h in headings)
+                    {
+                        <th>@h</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in rows)
+                {
+                    <tr>
+                        @foreach (var x in row.Split())
+                        {
+                            <td>@x</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    </MudItem>
+</MudGrid>
+
+
+    
+@code {
+    string[] headings = { "Id", "Etiqueta", "NombreHerramienta", "Disponible", "TipoHerramienta" };
+
+    string[] rows = {
+    @"1 HRM-001 Martillo 1 Manual",
+    @"2 HRM-002 TaladroElectrico 0 Electrica",
+    @"3 HRM-003 LlaveInglesa 1 Manual",
+    @"4 HRM-004 Esmeril 1 Electrica",
+    @"5 HRM-005 GatoHidraulico 1 Hidraulica",
+    @"6 HRM-006 CompresorAire 0 Neumatica"
+};
+
+
+    private void NavegarCrearHerramienta()
+    {
+        NavigationManager.NavigateTo("/CrearHerramienta");
+    }
+
+    private void NavegarAEliminarHerramienta()
+    {
+        NavigationManager.NavigateTo("/EliminarHerramienta");
+    }
+}

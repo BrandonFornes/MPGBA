@@ -5,11 +5,11 @@ namespace AdminHerramientas.Server.Models;
 
 public partial class Tarea
 {
-    public int Id { get; set; }
+    public int TrsId { get; set; }
 
-    public string NombreTarea { get; set; } = null!;
+    public string TrsNombreTarea { get; set; } = null!;
 
-    public decimal? ComisionTarea { get; set; }
+    public decimal TrsComisionTarea { get; set; }
 
     public virtual ICollection<RegistrosLavado> RegistrosLavados { get; } = new List<RegistrosLavado>();
 }

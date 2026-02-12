@@ -5,21 +5,23 @@ namespace AdminHerramientas.Server.Models;
 
 public partial class Vehiculo
 {
-    public int Id { get; set; }
+    public int VehId { get; set; }
 
-    public string NoSerie { get; set; } = null!;
+    public string VehNoSerie { get; set; } = null!;
 
-    public int FkIdMarca { get; set; }
+    public int VehFkIdModelo { get; set; }
 
-    public DateTime? FechaLlegada { get; set; }
+    public int VehAnio { get; set; }
 
-    public DateTime? UltimoMantenimiento { get; set; }
+    public DateTime VehFechaLlegada { get; set; }
 
-    public int? FkIdConcesionarioActual { get; set; }
+    public DateTime? VehUltimoMantenimiento { get; set; }
 
-    public virtual Concesionario? FkIdConcesionarioActualNavigation { get; set; }
-
-    public virtual Marca FkIdMarcaNavigation { get; set; } = null!;
+    public int VehFkIdConcesionarioActual { get; set; }
 
     public virtual ICollection<HistorialMantenimiento> HistorialMantenimientos { get; } = new List<HistorialMantenimiento>();
+
+    public virtual Concesionario VehFkIdConcesionarioActualNavigation { get; set; } = null!;
+
+    public virtual Modelo VehFkIdModeloNavigation { get; set; } = null!;
 }
