@@ -1,0 +1,88 @@
+@page "/generar_nomina"
+
+
+@using MudBlazor
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Generador Nominas</PageTitle>
+
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10" sm="7">
+        <MudPaper Class="pa-4">
+            <h4>Generar Nomina de Lavador</h4>
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudSelect T="string" Label="Lavador" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("Luis")" />
+                    <MudSelectItem Value="@("Jose")" />
+                    <MudSelectItem Value="@("Pepe")" />
+                </MudSelect>
+                @*
+                <MudDatePicker Label="Fecha Inicio" />
+                <MudDatePicker Label="Fecha Corte" />
+                *@
+            </MudForm>   
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Generar Nomina </MudButton>            
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudSimpleTable Hover="true" Dense="true" FixedHeader="@fixedheader" Style="@(fixedheader?"height:300px;":"")">
+                <thead>
+                    <tr>
+                        @foreach (var h in headings)
+                        {
+                            <th>@h</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in rows)
+                    {
+                        <tr>
+                            @foreach (var x in row.Split())
+                            {
+                                <td>@x</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Generar Archivo (.csv) </MudButton>            
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    
+
+    bool fixedheader = true;
+    string[] headings = { "ID", "Lavador", "Tarea", "Fecha", "Comisión" };
+    string[] rows = {
+        @"1 Luis LavadoCompleto 12/09/2026 70$",
+        @"2 Luis LavadoInterior 12/09/2026 35$",
+        @"3 Luis LavadoCompleto 12/09/2026 70$",
+        @"4 Luis LavadoExterior 12/09/2026 40$",
+        @"5 Luis LavadoExterior 12/09/2026 40$",
+        @"6 Luis LavadoCompleto 12/09/2026 70$",
+        @"7 Luis LavadoExterior 12/09/2026 40$",
+        @"8 Luis LavadoInterior 12/09/2026 35$",
+        @"9 Luis LavadoCompleto 12/09/2026 70$",
+        @"10 Luis LavadoExterior 12/09/2026 40$",
+        @"11 Luis LavadoCompleto 12/09/2026 70$",
+        @"12 Luis LavadoCompleto 12/09/2026 70$",
+        @"13 Luis LavadoInterior 12/09/2026 35$",
+    };
+    
+
+
+
+}

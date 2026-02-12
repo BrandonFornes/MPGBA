@@ -1,0 +1,46 @@
+@page "/registrar_lavado"
+
+
+@using MudBlazor
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Registro Lavados</PageTitle>
+
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10" sm="7">
+        <MudPaper Class="pa-4">
+            <h4>Registrar Lavado</h4>
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudSelect T="string" Label="Lavador" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("Luis")" />
+                    <MudSelectItem Value="@("Jose")" />
+                    <MudSelectItem Value="@("Pepe")" />
+                </MudSelect>
+                <MudSelect T="string" Label="Tarea" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("Completo")" />
+                    <MudSelectItem Value="@("Interior")" />
+                    <MudSelectItem Value="@("Exterior")" />
+                </MudSelect>
+                <MudDatePicker Label="Fecha" />
+            </MudForm>   
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Registrar Lavado</MudButton>            
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    
+    
+
+
+
+}
