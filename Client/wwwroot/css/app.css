@@ -99,3 +99,12 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+/*Color de hover personalizado!!!!*/
+.mud-nav-link:hover {
+    color: #5D737E !important; 
+}
+
+    .mud-nav-link:hover .mud-nav-link-icon {
+        color: #5D737E !important;
+    }

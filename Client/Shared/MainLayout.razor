@@ -1,7 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider Theme="myThemeGBA" />
+<MudDialogProvider />
+<MudPopoverProvider />
 
 @* Needed for dialogs *@
 <MudDialogProvider />
@@ -37,6 +39,18 @@
     {
         _drawerOpen = !_drawerOpen;
     }
+
+    MudTheme myThemeGBA = new MudTheme()
+    {
+        Palette = new Palette()
+        {
+            Primary = "#2c738a",
+            AppbarBackground = "#2c738a",
+            Secondary = "#DB324D",
+            Info = "#5D737E",
+            HoverOpacity = 0.02
+        }
+    };
 }
 
 
