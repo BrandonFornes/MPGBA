@@ -1,4 +1,4 @@
-@page "/registrar_lavado"
+@page "/lavados/nominas/registrar_lavado"
 
 @using MudBlazor
 
@@ -60,7 +60,7 @@
                                    Color="Color.Primary"
                                     Class="ml-auto"
                                    DisableElevation="true"
-                                   OnClick="RegistrarLavado">
+                                   OnClick="TryRegistrarLavado">
                             Registrar Lavado
                         </MudButton>
                     </MudCardActions>
@@ -82,7 +82,7 @@
     string tareaSeleccionada;
     DateTime? fechaSeleccionada;
 
-    void RegistrarLavado()
+    void TryRegistrarLavado()
     {
         form.Validate();
         if (form.IsValid)

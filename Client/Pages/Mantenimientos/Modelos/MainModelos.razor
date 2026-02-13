@@ -1,4 +1,4 @@
-﻿@page "/modelos"
+﻿@page "/mantenimientos/modelos"
 @using MudBlazor
 @inject NavigationManager NavigationManager
 
@@ -109,12 +109,12 @@
 
     private void NavegarARegistrarMarca()
     {
-        NavigationManager.NavigateTo("/registro_marcas");
+        NavigationManager.NavigateTo("/mantenimientos/modelos/agregar_marca");
     }
 
     private void NavegarARegistrarModelo()
     {
-        NavigationManager.NavigateTo("/registro_modelos");
+        NavigationManager.NavigateTo("/mantenimientos/modelos/agregar_modelo");
     }
 
     public class ModeloRow

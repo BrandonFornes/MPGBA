@@ -1,4 +1,4 @@
-﻿@page "/AjusteHerramientas"
+﻿@page "/herramientas/ajustes"
 @using MudBlazor
 @inject NavigationManager NavigationManager
 
@@ -121,12 +121,12 @@
 
     private void NavegarCrearHerramienta()
     {
-        NavigationManager.NavigateTo("/CrearHerramienta");
+        NavigationManager.NavigateTo("/herramientas/ajustes/crear_herramienta");
     }
 
     private void NavegarCrearTipoDeHerramienta()
     {
-        NavigationManager.NavigateTo("/CrearTipoDeHerramienta");
+        NavigationManager.NavigateTo("/herramientas/ajustes/crear_tipo_herramienta");
     }
 
     public class Herramienta

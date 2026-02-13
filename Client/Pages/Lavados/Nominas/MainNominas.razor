@@ -1,4 +1,4 @@
-@page "/lavados"
+@page "/lavados/nominas"
 @using MudBlazor
 @inject NavigationManager NavigationManager
 
@@ -65,8 +65,7 @@
     <MudButton Variant="Variant.Filled"
                Color="Color.Secondary"
                Class="ml-auto"
-               DisableElevation="true"
-               @onclick="NavegarAEliminarLavado">
+               DisableElevation="true">
         Eliminar Registro
     </MudButton>
 </MudCardActions>
@@ -111,17 +110,17 @@
 
     private void NavegarARegistrarLavado()
     {
-        NavigationManager.NavigateTo("/registrar_lavado");
+        NavigationManager.NavigateTo("/lavados/nominas/registrar_lavado");
     }
 
     private void NavegarAGenerarNomina()
     {
-        NavigationManager.NavigateTo("/generar_nomina");
+        NavigationManager.NavigateTo("/lavados/nominas/generar_nomina");
     }
 
     private void NavegarAEliminarLavado()
     {
-        NavigationManager.NavigateTo("/eliminar_lavado");
+        NavigationManager.NavigateTo("/lavados/nominas/eliminar_lavado");
     }
 
     public class Lavado

@@ -1,10 +1,10 @@
-﻿@page "/registro_modelos"
+﻿@page "/mantenimientos/modelos/agregar_modelo"
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
     <MudItem xs="12" sm="7">
         <MudPaper Class="pa-4">
 
-            <MudText Typo="Typo.h5" Class="mb-4">Registrar Modelo</MudText>
+            <MudText Typo="Typo.h5" Class="mb-4">Agregar Modelo</MudText>
 
             <MudForm @ref="formulario">
 
@@ -38,7 +38,7 @@
                                Class="ml-auto"
                                StartIcon="@Icons.Material.Filled.Save"
                                OnClick="GuardarModelo">
-                        Registrar Modelo
+                        Agregar Modelo
                     </MudButton>
                 </MudCardActions>
 
@@ -48,7 +48,7 @@
         @if (mostrarExito)
         {
             <MudAlert Severity="Severity.Success" Class="mt-4" ShowCloseIcon="true" CloseIconClicked="(() => mostrarExito = false)">
-                Se ha registrado el modelo <strong>@modeloGuardado</strong> para la marca <strong>@marcaGuardada</strong>.
+                Se ha agregado el modelo <strong>@modeloGuardado</strong> para la marca <strong>@marcaGuardada</strong>.
             </MudAlert>
         }
 

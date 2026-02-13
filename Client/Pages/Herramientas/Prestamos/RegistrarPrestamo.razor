@@ -1,11 +1,11 @@
-﻿@page "/DevolverPrestamo"
+﻿@page "/herramientas/prestamos/registrar_prestamo"
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
     <MudItem xs="12" sm="7">
         <MudPaper Class="pa-4">
 
             <MudText Typo="Typo.h5" Class="mb-4">
-                Devolver Préstamo
+                Registrar Préstamo
             </MudText>
 
             <MudForm @ref="formulario" Spacing="9">
@@ -16,8 +16,8 @@
                            Variant="Variant.Outlined"
                            Required="true"
                            RequiredError="Campo Obligatorio"
-                           Class="mb-4"
-                           AnchorOrigin="Origin.BottomCenter">
+                           AnchorOrigin="Origin.BottomCenter"
+                           Class="mb-4">
 
                     @foreach (var codigo in _codigos)
                     {
@@ -29,7 +29,7 @@
                 @if (!string.IsNullOrEmpty(operarioSeleccionado))
                 {
                     <MudSelect T="string"
-                               Label="Escoge la(s) herramientas a devolver"
+                               Label="Escoge la(s) herramientas"
                                Variant="Variant.Outlined"
                                MultiSelection="true"
                                Required="true"
@@ -48,6 +48,7 @@
 
                     <MudTextField T="string"
                                   Label="NIP"
+                                  Placeholder="Ingrese NIP único"
                                   InputType="InputType.Password"
                                   Variant="Variant.Outlined"
                                   Required="true"
@@ -58,9 +59,9 @@
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    Class="ml-auto"
-                                   StartIcon="@Icons.Material.Filled.AssignmentReturn"
-                                   OnClick="TryDevolverPrestamo">
-                            Devolver
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="GuardarPrestamo">
+                            Registrar Préstamo
                         </MudButton>
                     </MudCardActions>
                 }
@@ -74,7 +75,8 @@
                       Class="mt-4"
                       ShowCloseIcon="true"
                       CloseIconClicked="(() => mostrarExito = false)">
-                Herramientas devueltas por: <strong>@operarioSeleccionado</strong>
+                Préstamo registrado para:
+                <strong>@operarioSeleccionado</strong>
             </MudAlert>
         }
 
@@ -90,7 +92,7 @@
     private string _textoHerramientas = "Nada seleccionado";
     private IEnumerable<string> _herramientasSeleccionadas = new HashSet<string>();
 
-    void TryDevolverPrestamo()
+    void GuardarPrestamo()
     {
         formulario.Validate();
         if (formulario.IsValid)
