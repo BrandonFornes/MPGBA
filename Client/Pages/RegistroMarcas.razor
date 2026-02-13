@@ -1,0 +1,76 @@
+﻿@page "/registro_marcas"
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+
+            <MudText Typo="Typo.h5" Class="mb-4">Registrar Nueva Marca</MudText>
+
+            <MudForm @ref="formulario">
+
+                <MudTextField T="string"
+                              Label="Nombre de la Marca"
+                              Placeholder="Ej. Ford, Mazda..."
+                              @bind-Value="nombreMarca"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Campo Obligatorio."
+                              Class="mb-4" />
+
+                <MudNumericField T="int"
+                                 Label="Intervalo de Mantenimiento (Días)"
+                                 HelperText="Cada cuántos días requiere servicio esta marca."
+                                 @bind-Value="diasIntervalo"
+                                 Variant="Variant.Outlined"
+                                 Min="1"
+                                 Class="mb-4" />
+
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="ml-auto"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="GuardarMarca">
+                        Registrar Marca
+                    </MudButton>
+                </MudCardActions>
+
+            </MudForm>
+        </MudPaper>
+
+        @if (mostrarExito)
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-4" ShowCloseIcon="true" CloseIconClicked="(() => mostrarExito = false)">
+                Se registró la marca <strong>@marcaGuardada</strong> con un intervalo de @diasGuardados días.
+            </MudAlert>
+        }
+
+    </MudItem>
+</MudGrid>
+
+@code {
+    MudForm formulario;
+    string nombreMarca = "";
+    int diasIntervalo = 180;
+
+    bool mostrarExito = false;
+    string marcaGuardada = "";
+    int diasGuardados = 0;
+
+    void GuardarMarca()
+    {
+
+        if (!string.IsNullOrWhiteSpace(nombreMarca))
+        {
+
+            marcaGuardada = nombreMarca;
+            diasGuardados = diasIntervalo;
+            mostrarExito = true;
+
+            nombreMarca = "";
+            diasIntervalo = 180;
+
+            formulario.ResetValidation();
+        }
+    }
+}

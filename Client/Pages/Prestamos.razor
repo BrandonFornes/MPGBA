@@ -3,13 +3,13 @@
 @using MudBlazor
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
-        <MudItem xs = "10" >
-            <MudPaper>
-                <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary"
-                            @onclick="NavegarARegistrarPrestamo">Agregar Prestamo</MudButton>
-                <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
-                            @onclick="NavegarADevolverPrestamo">Devolver Prestamo</MudButton>
-            </MudPaper>
+    <MudItem xs="10">
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" 
+                       @onclick="NavegarARegistrarPrestamo">Agregar Prestamo</MudButton>
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
+                       @onclick="NavegarADevolverPrestamo">Devolver Prestamo</MudButton>
+        </MudPaper>
 
         <MudTable Items="@PrestamosH" Filter="new Func<Prestamo, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
             <ToolBarContent>
@@ -30,13 +30,14 @@
                 <MudTd DataLabel="CodigoEncargado">@context.CodigoEncargado</MudTd>
                 <MudTd DataLabel="NombreEncargado">@context.NombreEncargado</MudTd>
                 <MudTd DataLabel="FechaSolicitud">@context.FechaSolicitud.ToString("dd/MM/yyyy")</MudTd>
-                <MudTd><MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error"
-                           >Eliminar</MudButton></MudTd>
-                
+                <MudTd>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error">Eliminar</MudButton>
+                </MudTd>
+
             </RowTemplate>
-            
+
         </MudTable>
-        </MudItem>
+    </MudItem>
 
 </MudGrid>
 @code {
@@ -48,7 +49,7 @@
             Id = 1,
             IdHerramienta = 101,
             CodigoEncargado = "EMP001",
-            NombreEncargado = "Juan Pérez",
+            NombreEncargado = "Juan Perez",
             FechaSolicitud = DateTime.Today.AddDays(-3)
         },
         new Prestamo
@@ -56,7 +57,7 @@
             Id = 2,
             IdHerramienta = 205,
             CodigoEncargado = "EMP002",
-            NombreEncargado = "María López",
+            NombreEncargado = "Maria Lopez",
             FechaSolicitud = DateTime.Today.AddDays(-2)
         },
         new Prestamo
@@ -64,7 +65,7 @@
             Id = 3,
             IdHerramienta = 309,
             CodigoEncargado = "EMP003",
-            NombreEncargado = "Carlos Hernández",
+            NombreEncargado = "Carlos Hernandez",
             FechaSolicitud = DateTime.Today.AddDays(-1)
         },
         new Prestamo
@@ -107,7 +108,7 @@
         NavigationManager.NavigateTo("/DevolverPrestamo");
     }
 
-     class Prestamo
+    class Prestamo
     {
         public int Id { get; set; }
         public int IdHerramienta { get; set; }
@@ -115,5 +116,5 @@
         public string NombreEncargado { get; set; }
         public DateTime FechaSolicitud { get; set; }
     }
-    
+
 }

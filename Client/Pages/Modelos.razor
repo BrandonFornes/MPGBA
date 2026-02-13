@@ -1,0 +1,88 @@
+﻿@page "/modelos"
+@inject NavigationManager NavigationManager
+@using MudBlazor
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3"
+                       @onclick="NavegarARegistrarMarca">Agregar Marca</MudButton>
+
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
+                       @onclick="NavegarARegistrarModelo">Agregar Modelo</MudButton>
+        </MudPaper>
+
+        <MudTable Items="@ListaModelos" Filter="new Func<ModeloRow, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Catálogo de Modelos</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString1" Placeholder="Buscar marca o modelo..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh>ID</MudTh>
+                <MudTh>Marca</MudTh>
+                <MudTh>Modelo</MudTh>
+                <MudTh>Acciones</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="Marca">@context.NombreMarca</MudTd>
+                <MudTd DataLabel="Modelo">@context.NombreModelo</MudTd>
+                <MudTd>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error")">Eliminar</MudButton>
+                </MudTd>
+            </RowTemplate>
+
+        </MudTable>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<ModeloRow> ListaModelos = new List<ModeloRow>
+    {
+        new ModeloRow { Id = 1, NombreMarca = "Toyota", NombreModelo = "Corolla" },
+        new ModeloRow { Id = 2, NombreMarca = "Ford", NombreModelo = "F-150" },
+        new ModeloRow { Id = 3, NombreMarca = "Ford", NombreModelo = "Mustang" },
+        new ModeloRow { Id = 4, NombreMarca = "Nissan", NombreModelo = "Sentra" },
+        new ModeloRow { Id = 5, NombreMarca = "Mazda", NombreModelo = "CX-5" },
+        new ModeloRow { Id = 6, NombreMarca = "Jeep", NombreModelo = "Wrangler" },
+        new ModeloRow { Id = 7, NombreMarca = "Dodge", NombreModelo = "Challenger" },
+        new ModeloRow { Id = 8, NombreMarca = "Automotriz del Noroeste", NombreModelo = "Generico" }
+    };
+
+    private string searchString1 = "";
+    private ModeloRow selectedItem1 = null;
+
+    private bool FilterFunc1(ModeloRow elemento) => FilterFunc(elemento, searchString1);
+
+    private bool FilterFunc(ModeloRow elemento, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (elemento.NombreMarca.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (elemento.NombreModelo.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private void NavegarARegistrarMarca()
+    {
+        NavigationManager.NavigateTo("/registro_marcas");
+    }
+
+    private void NavegarARegistrarModelo()
+    {
+        NavigationManager.NavigateTo("/registro_modelos");
+    }
+
+
+    public class ModeloRow
+    {
+        public int Id { get; set; }
+        public string NombreMarca { get; set; }
+        public string NombreModelo { get; set; }
+    }
+}

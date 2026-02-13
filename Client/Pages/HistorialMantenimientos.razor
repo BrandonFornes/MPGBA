@@ -1,5 +1,146 @@
-﻿<h3>HistorialMantenimientos</h3>
-@page "/historial_mantenimientos"
+﻿@page "/historial_mantenimientos"
+@using System.Globalization
+
+@inject NavigationManager NavigationManager
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+<MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">Gestión de Mantenimientos</MudText>
+
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3"
+                       @onclick="NavegarARegistrarMantenimiento">Registrar Mantenimiento</MudButton>
+
+            @*
+                        <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
+                       @onclick="NavegarARegistrarModelo">Agregar Modelo</MudButton>
+                       *@
+
+        </MudPaper>
+
+<MudDataGrid T="MantenimientoFila" Items="@listaMantenimientos" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
+    
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Historial de servicios</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar por serie, modelo..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+
+
+
+    <Columns>
+        <PropertyColumn Property="x => x.IdMantenimiento" Title="ID" Sortable="true" Filterable="false"></PropertyColumn>
+        <PropertyColumn Property="x => x.NoSerie" Title="No. Serie" />
+
+        <PropertyColumn Property="x => x.Marca" Title="Marca" />
+        <PropertyColumn Property="x => x.Modelo" Title="Modelo" />
+
+        <PropertyColumn Property="x => x.Concesionario" Title="Concesionario" />
+
+        <PropertyColumn Property="x => x.UltimoMantenimiento" Title="Último Servicio" Format="dd/MM/yyyy" />
+
+        <PropertyColumn Property="x => x.ProximoMantenimiento" Title="Próximo Servicio" Format="dd/MM/yyyy" />
+
+        <TemplateColumn Title="Estado">
+            <CellTemplate>
+                @if (context.Item.ProximoMantenimiento < DateTime.Now)
+                {
+                    <MudChip Color="Color.Error" Size="Size.Small">Vencido</MudChip>
+                }
+                else
+                {
+                    <MudChip Color="Color.Success" Size="Size.Small">En tiempo</MudChip>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="MantenimientoFila" />
+    </PagerContent>
+</MudDataGrid>
+</MudItem>
+</MudGrid>
+
 @code {
+    private string _searchString;
+    private List<MantenimientoFila> listaMantenimientos = new List<MantenimientoFila>();
+
+    public class MantenimientoFila
+    {
+        public int IdMantenimiento { get; set; }
+        public string NoSerie { get; set; }
+        public string Marca { get; set; }
+        public string Modelo { get; set; }
+        public string Concesionario { get; set; }
+        public DateTime UltimoMantenimiento { get; set; }
+        public int IntervaloDias { get; set; }
+
+        public DateTime ProximoMantenimiento => UltimoMantenimiento.AddDays(IntervaloDias);
+    }
+
+
+
+    protected override void OnInitialized()
+    {
+        AgregarMantenimiento(101, "FRD-2024-X", "Ford", "Ranger Raptor", "FORD CIUDAD OBREGON", 190, 180);
+        AgregarMantenimiento(102, "MZD-5544-Y", "Mazda", "CX-5", "MAZDA LOS MOCHIS", 30, 180);
+        AgregarMantenimiento(103, "DFG-8888-Z", "Dongfeng", "Aeolus T5 Evo", "DONGFENG OBREGON", 100, 180);
+        AgregarMantenimiento(104, "PEU-2008-GT", "Peugeot", "2008 GT", "PEUGEOT CIUDAD OBREGON", 370, 365);
+        AgregarMantenimiento(105, "JEEP-WRG-4X4", "Jeep", "Wrangler Rubicon", "JEEP CIUDAD OBREGON", 10, 180);
+        AgregarMantenimiento(106, "RAM-700-LRAM", "Ram", "700 Laramie", "RAM TRES RIOS", 200, 90);
+        AgregarMantenimiento(107, "JET-X70-PLUS", "Jetour", "X70 Plus", "JETOUR MAZATLAN", 60, 180);
+        AgregarMantenimiento(108, "LNC-NVG-BLK", "Lincoln", "Navigator", "LINCOLN CULIACAN", 175, 180);
+        AgregarMantenimiento(109, "FIA-PLS-ABTH", "Fiat", "Pulse Abarth", "FIAT TRES RIOS", 95, 180);
+        AgregarMantenimiento(110, "BST-B70-TURB", "Bestune", "B70", "BESTUNE OBREGON", 400, 180);
+        AgregarMantenimiento(111, "JIM-REMAX-42", "JIM", "Re-Max S", "JIM HERMOSILLO", 5, 180);
+        AgregarMantenimiento(112, "DGE-ATT-SXT", "Dodge", "Attitude", "DODGE CIUDAD OBREGON", 185, 180);
+        AgregarMantenimiento(113, "VOL-XC60-HYB", "Volvo", "XC60 Recharge", "VOLVO CULIACAN", 120, 365);
+
+
+
+    }
+
+    private void AgregarMantenimiento(int id, string serie, string marca, string modelo, string concesionario, int diasAtrasUltimoMant, int intervalo)
+    {
+        listaMantenimientos.Add(new MantenimientoFila
+        {
+            IdMantenimiento = id,
+            NoSerie = serie,
+            Marca = marca,
+            Modelo = modelo,
+            Concesionario = concesionario,
+            UltimoMantenimiento = DateTime.Now.AddDays(-diasAtrasUltimoMant),
+            IntervaloDias = intervalo
+        });
+    }
+
+    private void NavegarARegistrarMantenimiento()
+    {
+        NavigationManager.NavigateTo("/registro_mantenimientos");
+    }
+
+
+    private bool _quickFilter(MantenimientoFila x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.NoSerie?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.Marca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.Modelo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.Concesionario?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        return false;
+    }
 
 }

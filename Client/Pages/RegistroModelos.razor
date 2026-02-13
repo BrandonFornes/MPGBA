@@ -1,0 +1,96 @@
+﻿@page "/registro_modelos"
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+
+            <MudText Typo="Typo.h5" Class="mb-4">Registrar Modelo</MudText>
+
+            <MudForm @ref="formulario">
+
+                <MudSelect T="string"
+                           Label="Marca"
+                           @bind-Value="marcaSeleccionada"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Required="true"
+                           RequiredError="Campo Obligatorio"
+                           Class="mb-4">
+
+                    @foreach (var marca in listaMarcas)
+                    {
+                        <MudSelectItem Value="@marca">@marca</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField T="string"
+                              Label="Nombre del Modelo"
+                              Placeholder="Ej. Mustang, Fusion, Sedán..."
+                              @bind-Value="nombreModelo"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              RequiredError="Campo Obligatorio"
+                              Class="mb-4" />
+
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="ml-auto"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="GuardarModelo">
+                        Registrar Modelo
+                    </MudButton>
+                </MudCardActions>
+
+            </MudForm>
+        </MudPaper>
+
+        @if (mostrarExito)
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-4" ShowCloseIcon="true" CloseIconClicked="(() => mostrarExito = false)">
+                Se ha registrado el modelo <strong>@modeloGuardado</strong> para la marca <strong>@marcaGuardada</strong>.
+            </MudAlert>
+        }
+
+    </MudItem>
+</MudGrid>
+
+@code {
+    MudForm formulario;
+
+    string marcaSeleccionada;
+    string nombreModelo = "";
+
+    List<string> listaMarcas = new List<string>
+    {
+        "Lincoln",
+        "Ford",
+        "Dongfeng",
+        "Jetour",
+        "Dodge",
+        "Mazda",
+        "Jeep",
+        "Ram",
+        "Peugeot",
+    };
+
+    bool mostrarExito = false;
+    string modeloGuardado = "";
+    string marcaGuardada = "";
+
+    void GuardarModelo()
+    {
+        formulario.Validate();
+
+        if (formulario.IsValid)
+        {
+            modeloGuardado = nombreModelo;
+            marcaGuardada = marcaSeleccionada;
+            mostrarExito = true;
+
+            nombreModelo = "";
+            marcaSeleccionada = null;
+            formulario.ResetValidation();
+        }
+    }
+}
