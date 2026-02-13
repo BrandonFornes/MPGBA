@@ -4,7 +4,9 @@
     <MudItem xs="12" sm="7">
         <MudPaper Class="pa-4">
 
-            <MudText Typo="Typo.h5" Class="mb-4">Registrar Préstamo</MudText>
+            <MudText Typo="Typo.h5" Class="mb-4">
+                Registrar Préstamo
+            </MudText>
 
             <MudForm @ref="formulario" Spacing="9">
 
@@ -14,57 +16,67 @@
                            Variant="Variant.Outlined"
                            Required="true"
                            RequiredError="Campo Obligatorio"
-                           MultiSelection="false"
                            AnchorOrigin="Origin.BottomCenter"
                            Class="mb-4">
+
                     @foreach (var codigo in _codigos)
                     {
                         <MudSelectItem Value="@codigo">@codigo</MudSelectItem>
                     }
+
                 </MudSelect>
 
-                <MudSelect T="string"
-                           Label="Escoge la(s) herramientas"
-                           Variant="Variant.Outlined"
-                           MultiSelection="true"
-                           Required="true"
-                           RequiredError="Campo Obligatorio"
-                           Class="mb-4"
-                           AnchorOrigin="Origin.BottomCenter"
-                           @bind-Value="_textoHerramientas"
-                           @bind-SelectedValues="_herramientasSeleccionadas">
-                    @foreach (var state in _states)
-                    {
-                        <MudSelectItem T="string" Value="@state">@state</MudSelectItem>
-                    }
-                </MudSelect>
+                @if (!string.IsNullOrEmpty(operarioSeleccionado))
+                {
+                    <MudSelect T="string"
+                               Label="Escoge la(s) herramientas"
+                               Variant="Variant.Outlined"
+                               MultiSelection="true"
+                               Required="true"
+                               RequiredError="Campo Obligatorio"
+                               Class="mb-4"
+                               AnchorOrigin="Origin.BottomCenter"
+                               @bind-Value="_textoHerramientas"
+                               @bind-SelectedValues="_herramientasSeleccionadas">
 
-                <MudTextField T="string"
-                              Label="NIP"
-                              Placeholder="Ingrese NIP único"
-                              InputType="InputType.Password"
-                              Variant="Variant.Outlined"
-                              Required="true"
-                              RequiredError="Campo Obligatorio"
-                              Class="mb-4" />
+                        @foreach (var state in _states)
+                        {
+                            <MudSelectItem Value="@state">@state</MudSelectItem>
+                        }
 
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               Class="ml-auto"
-                               StartIcon="@Icons.Material.Filled.Save"
-                               OnClick="GuardarPrestamo">
-                        Registrar Préstamo
-                    </MudButton>
-                </MudCardActions>
+                    </MudSelect>
+
+                    <MudTextField T="string"
+                                  Label="NIP"
+                                  Placeholder="Ingrese NIP único"
+                                  InputType="InputType.Password"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Campo Obligatorio"
+                                  Class="mb-4" />
+
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Class="ml-auto"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="GuardarPrestamo">
+                            Registrar Préstamo
+                        </MudButton>
+                    </MudCardActions>
+                }
 
             </MudForm>
         </MudPaper>
 
         @if (mostrarExito)
         {
-            <MudAlert Severity="Severity.Success" Class="mt-4" ShowCloseIcon="true" CloseIconClicked="(() => mostrarExito = false)">
-                Préstamo registrado para: <strong>@operarioSeleccionado</strong>
+            <MudAlert Severity="Severity.Success"
+                      Class="mt-4"
+                      ShowCloseIcon="true"
+                      CloseIconClicked="(() => mostrarExito = false)">
+                Préstamo registrado para:
+                <strong>@operarioSeleccionado</strong>
             </MudAlert>
         }
 
@@ -74,7 +86,9 @@
 @code {
     MudForm formulario;
     bool mostrarExito = false;
+
     string operarioSeleccionado;
+
     private string _textoHerramientas = "Nada seleccionado";
     private IEnumerable<string> _herramientasSeleccionadas = new HashSet<string>();
 
@@ -91,14 +105,14 @@
     {
         "Martillo", "Destornillador plano", "Destornillador de cruz", "Llave inglesa",
         "Llave de matraca", "Juego de dados", "Pinzas universales", "Pinzas de punta",
-        "Taladro eléctrico", "Brocas", "Sierra manual", "Sierra eléctrica", "Esmeril",
-        "Lijadora", "Cinta métrica", "Nivel de burbuja", "Prensa tipo C",
-        "Gato hidráulico", "Compresor de aire", "Soldadora"
+        "Taladro eléctrico", "Brocas", "Sierra manual", "Sierra eléctrica",
+        "Esmeril", "Lijadora", "Cinta métrica", "Nivel de burbuja",
+        "Prensa tipo C", "Gato hidráulico", "Compresor de aire", "Soldadora"
     };
 
     private readonly string[] _codigos = new[]
     {
-        "OPR001", "OPR002", "OPR003", "OPR004", "OPR005",
-        "OPR006", "OPR007", "OPR008", "OPR009", "OPR010"
+        "OPR001","OPR002","OPR003","OPR004","OPR005",
+        "OPR006","OPR007","OPR008","OPR009","OPR010"
     };
 }

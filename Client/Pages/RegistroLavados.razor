@@ -1,46 +1,100 @@
 @page "/registrar_lavado"
 
-
 @using MudBlazor
-@using System.Text.RegularExpressions
-@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Registro Lavados</PageTitle>
-
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
     <MudItem xs="10" sm="7">
         <MudPaper Class="pa-4">
-            <h4>Registrar Lavado</h4>
-            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-                <MudSelect T="string" Label="Lavador" AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@("Luis")" />
-                    <MudSelectItem Value="@("Jose")" />
-                    <MudSelectItem Value="@("Pepe")" />
+
+            <MudText Typo="Typo.h5" Class="mb-4">
+                Registrar Lavado
+            </MudText>
+
+            <MudForm @ref="form" @bind-IsValid="success" @bind-Errors="errors">
+
+                <MudSelect T="string"
+                           Label="Lavador"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           RequiredError="Campo obligatorio"
+                           AnchorOrigin="Origin.BottomCenter"
+                           @bind-Value="lavadorSeleccionado"
+                           Class="mb-4">
+
+                    @foreach (var lavador in _lavadores)
+                    {
+                        <MudSelectItem Value="@lavador">@lavador</MudSelectItem>
+                    }
+
                 </MudSelect>
-                <MudSelect T="string" Label="Tarea" AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@("Completo")" />
-                    <MudSelectItem Value="@("Interior")" />
-                    <MudSelectItem Value="@("Exterior")" />
-                </MudSelect>
-                <MudDatePicker Label="Fecha" />
-            </MudForm>   
-        </MudPaper>
-        <MudPaper Class="pa-4 mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Registrar Lavado</MudButton>            
+
+                @if (!string.IsNullOrEmpty(lavadorSeleccionado))
+                {
+                    <MudSelect T="string"
+                               Label="Tarea"
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               RequiredError="Campo obligatorio"
+                               AnchorOrigin="Origin.BottomCenter"
+                               @bind-Value="tareaSeleccionada"
+                               Class="mb-4">
+
+                        @foreach (var tarea in _tareas)
+                        {
+                            <MudSelectItem Value="@tarea">@tarea</MudSelectItem>
+                        }
+
+                    </MudSelect>
+
+                    <MudDatePicker Label="Fecha"
+                                   Variant="Variant.Outlined"
+                                   Required="true"
+                                   RequiredError="Campo obligatorio"
+                                   @bind-Date="fechaSeleccionada"
+                                   Class="mb-4" />
+
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                    Class="ml-auto"
+                                   DisableElevation="true"
+                                   OnClick="RegistrarLavado">
+                            Registrar Lavado
+                        </MudButton>
+                    </MudCardActions>
+                }
+
+            </MudForm>
+
         </MudPaper>
     </MudItem>
 </MudGrid>
 
 @code {
+
     bool success;
     string[] errors = { };
-    MudTextField<string> pwField1;
     MudForm form;
 
-    
-    
+    string lavadorSeleccionado;
+    string tareaSeleccionada;
+    DateTime? fechaSeleccionada;
 
+    void RegistrarLavado()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            form.Reset();
+            lavadorSeleccionado = null;
+            tareaSeleccionada = null;
+            fechaSeleccionada = null;
+        }
+    }
 
+    private readonly string[] _lavadores = { "Luis", "Jose", "Pepe" };
 
+    private readonly string[] _tareas = { "Completo", "Interior", "Exterior" };
 }

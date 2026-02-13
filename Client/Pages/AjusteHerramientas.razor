@@ -3,150 +3,132 @@
 @inject NavigationManager NavigationManager
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
-    <MudItem xs="10">
-        
-        <MudPaper Class="pa-4 mb-4">
-            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3"
-                       @onclick="NavegarCrearHerramienta">Crear Herramienta</MudButton>
+<MudItem xs="10">
 
-            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
-                       @onclick="NavegarCrearTipoDeHerramienta">Crear Tipo de Herramienta</MudButton>
+        <MudText Typo="Typo.h3" Class="mb-4">
+            Herramientas
+        </MudText>
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Color="Color.Tertiary"
+                       Class="mr-3"
+                       @onclick="NavegarCrearHerramienta">
+                Crear Herramienta
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Color="Color.Info"
+                       @onclick="NavegarCrearTipoDeHerramienta">
+                Crear Tipo de Herramienta
+            </MudButton>
         </MudPaper>
 
-        <MudTable Items="@Herramientas" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" Filter="new Func<Herramienta, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">Lista de Herramientas</MudText>
-                <MudSpacer />
-                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh>IdHerramienta</MudTh>
-                <MudTh>Etiqueta</MudTh>
-                <MudTh>NombreHerramienta</MudTh>
-                <MudTh>Disponible</MudTh>
-                <MudTh>TipoHerramienta</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="IdHerramienta">@context.Id</MudTd>
-                <MudTd DataLabel="Etiqueta">@context.Etiqueta</MudTd>
-                <MudTd DataLabel="NombreHerramienta">@context.NombreHerramienta</MudTd>
-                <MudTd DataLabel="Disponible">@context.Disponible</MudTd>
-                <MudTd DataLabel="TipoHerramienta">@context.TipoHerramienta</MudTd>
-                <MudTd>
-                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error">Eliminar</MudButton>
-                </MudTd>
-            </RowTemplate>
-            
-        </MudTable>
+<MudDataGrid T="Herramienta"
+             Items="@Herramientas"
+             Filterable="true"
+             Sortable="true"
+             QuickFilter="@_quickFilter"
+             @bind-SelectedItem="selectedItem">
 
-        @* <MudSimpleTable Style="overflow-x: auto;">
-            <thead>
-                <tr>
-                    @foreach (var h in headings)
-                    {
-                        <th>@h</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in rows)
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Lista de Herramientas</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Buscar por nombre, etiqueta o tipo..."
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      Class="mt-0" />
+    </ToolBarContent>
+
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+        <PropertyColumn Property="x => x.Etiqueta" Title="Etiqueta" />
+        <PropertyColumn Property="x => x.NombreHerramienta" Title="Nombre" />
+        <PropertyColumn Property="x => x.TipoHerramienta" Title="Tipo" />
+
+        <TemplateColumn Title="Disponible">
+            <CellTemplate>
+                @if (context.Item.Disponible)
                 {
-                    <tr>
-                        @foreach (var x in row.Split())
-                        {
-                            <td>@x</td>
-                        }
-                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error">Eliminar</MudButton>
-                    </tr>
+                    <MudChip Color="Color.Success" Size="Size.Small">
+                        Disponible
+                    </MudChip>
                 }
-            </tbody>
-        </MudSimpleTable> *@
-    </MudItem>
+                else
+                {
+                    <MudChip Color="Color.Error" Size="Size.Small">
+                        No disponible
+                    </MudChip>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="Herramienta" />
+    </PagerContent>
+
+</MudDataGrid>
+
+<MudCardActions>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Secondary"
+               Class="ml-auto"
+               DisableElevation="true">
+        Eliminar Herramienta
+    </MudButton>
+</MudCardActions>
+
+</MudItem>
 </MudGrid>
 
-
-    
 @code {
-    string[] headings = { "Id", "Etiqueta", "NombreHerramienta", "Disponible", "TipoHerramienta" };
 
-    private IEnumerable<Herramienta> Herramientas = new List<Herramienta>
+    private string _searchString;
+    private Herramienta selectedItem;
+
+    private List<Herramienta> Herramientas = new()
     {
-    new Herramienta
-    {
-        Id = 1,
-        Etiqueta = "HRM-001",
-        NombreHerramienta = "Martillo",
-        Disponible = true,
-        TipoHerramienta = "Manual"
-    },
-    new Herramienta
-    {
-        Id = 2,
-        Etiqueta = "HRM-002",
-        NombreHerramienta = "TaladroElectrico",
-        Disponible = false,
-        TipoHerramienta = "Electrica"
-    },
-    new Herramienta
-    {
-        Id = 3,
-        Etiqueta = "HRM-003",
-        NombreHerramienta = "LlaveInglesa",
-        Disponible = true,
-        TipoHerramienta = "Manual"
-    },
-    new Herramienta
-    {
-        Id = 4,
-        Etiqueta = "HRM-004",
-        NombreHerramienta = "Esmeril",
-        Disponible = true,
-        TipoHerramienta = "Electrica"
-    },
-    new Herramienta
-    {
-        Id = 5,
-        Etiqueta = "HRM-005",
-        NombreHerramienta = "GatoHidraulico",
-        Disponible = true,
-        TipoHerramienta = "Hidraulica"
-    },
-    new Herramienta
-    {
-        Id = 6,
-        Etiqueta = "HRM-006",
-        NombreHerramienta = "CompresorAire",
-        Disponible = false,
-        TipoHerramienta = "Neumatica"
-    }
+        new Herramienta { Id = 1, Etiqueta = "HRM-001", NombreHerramienta = "Martillo", Disponible = true, TipoHerramienta = "Manual" },
+        new Herramienta { Id = 2, Etiqueta = "HRM-002", NombreHerramienta = "Taladro Electrico", Disponible = false, TipoHerramienta = "Electrica" },
+        new Herramienta { Id = 3, Etiqueta = "HRM-003", NombreHerramienta = "Llave Inglesa", Disponible = true, TipoHerramienta = "Manual" },
+        new Herramienta { Id = 4, Etiqueta = "HRM-004", NombreHerramienta = "Esmeril", Disponible = true, TipoHerramienta = "Electrica" },
+        new Herramienta { Id = 5, Etiqueta = "HRM-005", NombreHerramienta = "Gato Hidraulico", Disponible = true, TipoHerramienta = "Hidraulica" },
+        new Herramienta { Id = 6, Etiqueta = "HRM-006", NombreHerramienta = "Compresor Aire", Disponible = false, TipoHerramienta = "Neumatica" }
     };
-    private bool dense = false;
-    private bool hover = true;
-    private bool striped = false;
-    private bool bordered = false;
-    private string searchString1 = "";
-    private Herramienta selectedItem1 = null;
-    private HashSet<Herramienta> selectedItems = new HashSet<Herramienta>();
 
-    private IEnumerable<Herramienta> herramientas = new List<Herramienta>();
-
-    private bool FilterFunc1(Herramienta herramienta) => FilterFunc(herramienta, searchString1);
-
-    private bool FilterFunc(Herramienta herramienta, string searchString)
+    private bool _quickFilter(Herramienta x)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
+        if (string.IsNullOrWhiteSpace(_searchString))
             return true;
-        if (herramienta.NombreHerramienta.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+
+        if (x.NombreHerramienta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
-        if (herramienta.Etiqueta.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+
+        if (x.Etiqueta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
-        if (herramienta.TipoHerramienta.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+
+        if (x.TipoHerramienta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
+
         return false;
     }
 
+    private void NavegarCrearHerramienta()
+    {
+        NavigationManager.NavigateTo("/CrearHerramienta");
+    }
 
-    
+    private void NavegarCrearTipoDeHerramienta()
+    {
+        NavigationManager.NavigateTo("/CrearTipoDeHerramienta");
+    }
+
     public class Herramienta
     {
         public int Id { get; set; }
@@ -154,16 +136,5 @@
         public string NombreHerramienta { get; set; }
         public bool Disponible { get; set; }
         public string TipoHerramienta { get; set; }
-    }
-
-
-    private void NavegarCrearHerramienta()
-    {
-        NavigationManager.NavigateTo("/CrearHerramienta");
-    }
-    
-    private void NavegarCrearTipoDeHerramienta()
-    {
-        NavigationManager.NavigateTo("/CrearTipoDeHerramienta");
     }
 }

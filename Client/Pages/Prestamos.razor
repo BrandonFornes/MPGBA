@@ -1,100 +1,126 @@
 @page "/prestamos"
-@inject NavigationManager NavigationManager
 @using MudBlazor
+@inject NavigationManager NavigationManager
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
-    <MudItem xs="10">
+<MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">
+            Préstamos
+        </MudText>
+
         <MudPaper Class="pa-4 mb-4">
-            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" 
-                       @onclick="NavegarARegistrarPrestamo">Agregar Prestamo</MudButton>
-            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
-                       @onclick="NavegarADevolverPrestamo">Devolver Prestamo</MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Color="Color.Tertiary"
+                       Class="mr-3"
+                       @onclick="NavegarARegistrarPrestamo">
+                Agregar Préstamo
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Color="Color.Info"
+                       @onclick="NavegarADevolverPrestamo">
+                Devolver Préstamo
+            </MudButton>
         </MudPaper>
 
-        <MudTable Items="@PrestamosH" Filter="new Func<Prestamo, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">Lista de Prestamos</MudText>
-                <MudSpacer />
-                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh>IdPrestamo</MudTh>
-                <MudTh>IdHerramienta</MudTh>
-                <MudTh>CodigoEncargado</MudTh>
-                <MudTh>NombreEncargado</MudTh>
-                <MudTh>FechaSolicitud</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="IdPrestamo">@context.Id</MudTd>
-                <MudTd DataLabel="IdHerramienta">@context.IdHerramienta</MudTd>
-                <MudTd DataLabel="CodigoEncargado">@context.CodigoEncargado</MudTd>
-                <MudTd DataLabel="NombreEncargado">@context.NombreEncargado</MudTd>
-                <MudTd DataLabel="FechaSolicitud">@context.FechaSolicitud.ToString("dd/MM/yyyy")</MudTd>
-                <MudTd>
-                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error">Eliminar</MudButton>
-                </MudTd>
+<MudDataGrid T="Prestamo"
+             Items="@PrestamosH"
+             Filterable="true"
+             Sortable="true"
+             QuickFilter="@_quickFilter">
 
-            </RowTemplate>
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Lista de Préstamos</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Buscar por código o nombre..."
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      Class="mt-0" />
+    </ToolBarContent>
 
-        </MudTable>
-    </MudItem>
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+        <PropertyColumn Property="x => x.IdHerramienta" Title="ID Herramienta" />
+        <PropertyColumn Property="x => x.CodigoEncargado" Title="Código Encargado" />
+        <PropertyColumn Property="x => x.NombreEncargado" Title="Nombre Encargado" />
+        <PropertyColumn Property="x => x.FechaSolicitud"
+                        Title="Fecha Solicitud"
+                        Format="dd/MM/yyyy" />
+    </Columns>
 
+    <PagerContent>
+        <MudDataGridPager T="Prestamo" />
+    </PagerContent>
+
+</MudDataGrid>
+
+</MudItem>
 </MudGrid>
+
 @code {
-    private IEnumerable<Prestamo> PrestamosH = new List<Prestamo>
 
+    private string _searchString;
+    private List<Prestamo> PrestamosH = new();
+
+    protected override void OnInitialized()
     {
-        new Prestamo
+        PrestamosH.AddRange(new[]
         {
-            Id = 1,
-            IdHerramienta = 101,
-            CodigoEncargado = "EMP001",
-            NombreEncargado = "Juan Perez",
-            FechaSolicitud = DateTime.Today.AddDays(-3)
-        },
-        new Prestamo
-        {
-            Id = 2,
-            IdHerramienta = 205,
-            CodigoEncargado = "EMP002",
-            NombreEncargado = "Maria Lopez",
-            FechaSolicitud = DateTime.Today.AddDays(-2)
-        },
-        new Prestamo
-        {
-            Id = 3,
-            IdHerramienta = 309,
-            CodigoEncargado = "EMP003",
-            NombreEncargado = "Carlos Hernandez",
-            FechaSolicitud = DateTime.Today.AddDays(-1)
-        },
-        new Prestamo
-        {
-            Id = 4,
-            IdHerramienta = 412,
-            CodigoEncargado = "EMP004",
-            NombreEncargado = "Ana Torres",
-            FechaSolicitud = DateTime.Today
-        }
-    };
-    private bool dense = false;
-    private bool hover = true;
-    private bool striped = false;
-    private bool bordered = false;
-    private string searchString1 = "";
-    private Prestamo selectedItem1 = null;
-    private HashSet<Prestamo> selectedItems = new HashSet<Prestamo>();
+            new Prestamo
+            {
+                Id = 1,
+                IdHerramienta = 101,
+                CodigoEncargado = "EMP001",
+                NombreEncargado = "Juan Perez",
+                FechaSolicitud = DateTime.Today.AddDays(-3)
+            },
+            new Prestamo
+            {
+                Id = 2,
+                IdHerramienta = 205,
+                CodigoEncargado = "EMP002",
+                NombreEncargado = "Maria Lopez",
+                FechaSolicitud = DateTime.Today.AddDays(-2)
+            },
+            new Prestamo
+            {
+                Id = 3,
+                IdHerramienta = 309,
+                CodigoEncargado = "EMP003",
+                NombreEncargado = "Carlos Hernandez",
+                FechaSolicitud = DateTime.Today.AddDays(-1)
+            },
+            new Prestamo
+            {
+                Id = 4,
+                IdHerramienta = 412,
+                CodigoEncargado = "EMP004",
+                NombreEncargado = "Ana Torres",
+                FechaSolicitud = DateTime.Today
+            }
+        });
+    }
 
-    private bool FilterFunc1(Prestamo prestamo) => FilterFunc(prestamo, searchString1);
-
-    private bool FilterFunc(Prestamo prestamo, string searchString)
+    private bool _quickFilter(Prestamo x)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
+        if (string.IsNullOrWhiteSpace(_searchString))
             return true;
-        if (prestamo.CodigoEncargado.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+
+        if (x.CodigoEncargado?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
-        if (prestamo.NombreEncargado.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+
+        if (x.NombreEncargado?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
+
+        if (x.IdHerramienta.ToString().Contains(_searchString))
+            return true;
+
         return false;
     }
 
@@ -108,7 +134,7 @@
         NavigationManager.NavigateTo("/DevolverPrestamo");
     }
 
-    class Prestamo
+    public class Prestamo
     {
         public int Id { get; set; }
         public int IdHerramienta { get; set; }
@@ -116,5 +142,4 @@
         public string NombreEncargado { get; set; }
         public DateTime FechaSolicitud { get; set; }
     }
-
 }
