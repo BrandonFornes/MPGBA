@@ -1,0 +1,36 @@
+@page "/registrar_tarea"
+
+
+@using MudBlazor
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Registro Tareas</PageTitle>
+
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10" sm="7">
+        <MudPaper Class="pa-4">
+            <h4>Registrar Tarea</h4>
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField T="string" Label="Tarea" />
+
+                <MudTextField T="string" Label="Comisión" />
+                
+            </MudForm>   
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(async () => await form.Validate())">Registrar Tarea</MudButton>        
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    public double DoubleValue { get; set; }
+
+}
