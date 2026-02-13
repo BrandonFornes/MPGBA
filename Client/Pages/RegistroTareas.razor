@@ -20,7 +20,7 @@
             </MudForm>   
         </MudPaper>
         <MudPaper Class="pa-4 mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(async () => await form.Validate())">Registrar Tarea</MudButton>        
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Registrar Tarea</MudButton>        
         </MudPaper>
     </MudItem>
 </MudGrid>
