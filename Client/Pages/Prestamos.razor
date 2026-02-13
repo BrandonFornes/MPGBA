@@ -2,72 +2,46 @@
 @inject NavigationManager NavigationManager
 @using MudBlazor
 
-
-
-
-@* <MudContainer MaxWidth="MaxWidth.Medium">
-    <MudStack Row Class="justify-space-between mud-width-full">
-    <MudStack Style="width: 300px">
-        @foreach (var variant in Enum.GetValues(typeof(Variant)).Cast<Variant>())
-        {
-            <MudSelect @bind-Value="_value"
-                       Variant="variant"
-                       Label="@variant.ToString()"
-                       Margin="_margin"
-                       Dense="_dense"
-                       FitContent="_fitContent"
-                       Disabled="_disabled"
-                       ReadOnly="_readonly"
-                       Placeholder="@(_placeholder ? "Placeholder" : null)"
-                       HelperText="@(_helperText ? "Helper Text" : null)"
-                       HelperTextOnFocus="_helperTextOnFocus"
-                       Clearable="_clearable"
-                       Modal="_modal">
-                @foreach (var state in _states)
-                {
-                    <MudSelectItem Value="state">@state</MudSelectItem>
-                }
-            </MudSelect>
-        }
-    </MudStack>
-
-</MudStack>
-
-</MudContainer> *@
-
-
 <MudGrid Class="mt-5" Justify="Justify.Center">
         <MudItem xs = "10" >
             <MudPaper>
                 <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary"
                             @onclick="NavegarARegistrarPrestamo">Agregar Prestamo</MudButton>
-                <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Secondary"
+                <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
                             @onclick="NavegarADevolverPrestamo">Devolver Prestamo</MudButton>
             </MudPaper>
-     
-           <MudTable Items="@PrestamosH.Take(4)" Hover="true" Breakpoint="Breakpoint.Sm"  LoadingProgressColor="Color.Info">
+
+        <MudTable Items="@PrestamosH" Filter="new Func<Prestamo, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Lista de Prestamos</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
             <HeaderContent>
-                <MudTh>Id</MudTh>
+                <MudTh>IdPrestamo</MudTh>
                 <MudTh>IdHerramienta</MudTh>
                 <MudTh>CodigoEncargado</MudTh>
                 <MudTh>NombreEncargado</MudTh>
                 <MudTh>FechaSolicitud</MudTh>
             </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="Id">@context.Id</MudTd>
-                    <MudTd DataLabel="IdHerramienta">@context.IdHerramienta</MudTd>
-                    <MudTd DataLabel="CodigoEncargado">@context.CodigoEncargado</MudTd>
-                    <MudTd DataLabel="NombreEncargado">@context.NombreEncargado</MudTd>
-                    <MudTd DataLabel="FechaSolicitud">
-                        @context.FechaSolicitud.ToString("dd/MM/yyyy")
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
+            <RowTemplate>
+                <MudTd DataLabel="IdPrestamo">@context.Id</MudTd>
+                <MudTd DataLabel="IdHerramienta">@context.IdHerramienta</MudTd>
+                <MudTd DataLabel="CodigoEncargado">@context.CodigoEncargado</MudTd>
+                <MudTd DataLabel="NombreEncargado">@context.NombreEncargado</MudTd>
+                <MudTd DataLabel="FechaSolicitud">@context.FechaSolicitud.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd><MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error"
+                           >Eliminar</MudButton></MudTd>
+                
+            </RowTemplate>
+            
+        </MudTable>
         </MudItem>
 
 </MudGrid>
 @code {
     private IEnumerable<Prestamo> PrestamosH = new List<Prestamo>
+
     {
         new Prestamo
         {
@@ -102,6 +76,26 @@
             FechaSolicitud = DateTime.Today
         }
     };
+    private bool dense = false;
+    private bool hover = true;
+    private bool striped = false;
+    private bool bordered = false;
+    private string searchString1 = "";
+    private Prestamo selectedItem1 = null;
+    private HashSet<Prestamo> selectedItems = new HashSet<Prestamo>();
+
+    private bool FilterFunc1(Prestamo prestamo) => FilterFunc(prestamo, searchString1);
+
+    private bool FilterFunc(Prestamo prestamo, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (prestamo.CodigoEncargado.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (prestamo.NombreEncargado.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
 
     private void NavegarARegistrarPrestamo()
     {
@@ -113,9 +107,6 @@
         NavigationManager.NavigateTo("/DevolverPrestamo");
     }
 
-
-
-
      class Prestamo
     {
         public int Id { get; set; }
@@ -126,39 +117,3 @@
     }
     
 }
-
-
-
-    
-
-
-
-
-@* @code {
-    private string _value;
-    private Margin _margin;
-    private bool _dense;
-    private bool _disabled;
-    private bool _readonly;
-    private bool _placeholder;
-    private bool _helperText;
-    private bool _helperTextOnFocus;
-    private bool _clearable;
-    private bool _fitContent;
-    private bool _modal = true;
-
-    private readonly string[] _states =
-    {
-        "Alabama", "Alaska", "Arizona", "Arkansas", "California",
-        "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
-        "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas",
-        "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
-        "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana",
-        "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
-        "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma",
-        "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-        "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
-        "Washington", "West Virginia", "Wisconsin", "Wyoming"
-    };
-} *@
-
