@@ -1,6 +1,8 @@
 @page "/historial_lavados"
 
 @using MudBlazor
+@inject NavigationManager NavigationManager
+
 
 <PageTitle>Historial Lavados</PageTitle>
 
@@ -27,6 +29,9 @@
                 </MudTd>
             </RowTemplate>
         </MudTable>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" @onclick="NavegarAEliminarLavado">Eliminar Registro</MudButton>            
+        </MudPaper>
     </MudItem>
 </MudGrid>
 
@@ -102,6 +107,11 @@
         public string Lavador { get; set; }
         public string Tarea { get; set; }
         public DateTime Fecha { get; set; }
+    }
+
+    private void NavegarAEliminarLavado()
+    {
+        NavigationManager.NavigateTo("/eliminar_lavado");
     }
     
 }

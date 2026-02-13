@@ -1,0 +1,30 @@
+@page "/eliminar_tarea"
+
+<PageTitle>Eliminar Tarea</PageTitle>
+
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10" sm="7">
+        <MudPaper Class="pa-4">
+            <h4>Eliminar Tarea</h4>
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField T="string" Label="Id Tarea" />
+            </MudForm>   
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Eliminar Tarea</MudButton>            
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    bool success;
+    string[] errors = { };
+    MudForm form;
+
+    
+    
+
+
+
+}
