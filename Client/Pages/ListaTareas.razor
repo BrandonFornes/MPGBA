@@ -1,0 +1,71 @@
+@page "/lista_tareas"
+
+@using MudBlazor
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Lista Tareas</PageTitle>
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs = "10">
+        <MudTable Items="@tareas" Hover="true" Breakpoint="Breakpoint.Sm"  LoadingProgressColor="Color.Info">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Lista Tareas</MudText>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Id</MudTh>
+                <MudTh>Tarea</MudTh>
+                <MudTh>Comision</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Id">@context.Id</MudTd>
+                <MudTd DataLabel="Tarea">@context.TareaTxt</MudTd>
+                <MudTd DataLabel="Comisión">@context.Comision</MudTd>
+            </RowTemplate>
+        </MudTable>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" @onclick="NavegarAEliminarLavado">Eliminar Tarea</MudButton>            
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    
+    private IEnumerable<Tarea> tareas = new List<Tarea>
+    {
+        new Tarea
+        {
+            Id = 1,
+            TareaTxt = "Lavado Completo",
+            Comision = 70
+        },
+        new Tarea
+        {
+            Id = 2,
+            TareaTxt = "Lavado Exterior",
+            Comision = 40
+        },
+        new Tarea
+        {
+            Id = 3,
+            TareaTxt = "Lavado Interior",
+            Comision = 35
+        }
+        
+    };
+
+    class Tarea
+    {
+        public int Id { get; set; }
+        public string TareaTxt { get; set; }
+        public double Comision { get; set; }
+    }
+
+    private void NavegarAEliminarLavado()
+    {
+        NavigationManager.NavigateTo("/eliminar_tarea");
+    }
+    
+}
+

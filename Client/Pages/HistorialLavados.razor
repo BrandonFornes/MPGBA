@@ -1,0 +1,118 @@
+@page "/historial_lavados"
+
+@using MudBlazor
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Historial Lavados</PageTitle>
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs = "10">
+        <MudTable Items="@Lavados" Hover="true" Breakpoint="Breakpoint.Sm"  LoadingProgressColor="Color.Info" Filter="new Func<Lavado,bool>(FilterFunc1)">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Historial Lavados</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString1" Placeholder="Buscar" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Id</MudTh>
+                <MudTh>Lavador</MudTh>
+                <MudTh>Tarea</MudTh>
+                <MudTh>Fecha</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Id">@context.Id</MudTd>
+                <MudTd DataLabel="Lavador">@context.Lavador</MudTd>
+                <MudTd DataLabel="Tarea">@context.Tarea</MudTd>
+                <MudTd DataLabel="Fecha">
+                    @context.Fecha.ToString("dd/MM/yyyy")
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" @onclick="NavegarAEliminarLavado">Eliminar Registro</MudButton>            
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    private string searchString1 = "";
+
+    private bool FilterFunc1(Lavado lavado) => FilterFunc(lavado, searchString1);
+
+    private bool FilterFunc(Lavado lavado, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (lavado.Lavador.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (lavado.Tarea.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (lavado.Fecha.ToString("dd/MM/yyyy").Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{lavado.Id} {lavado.Lavador} {lavado.Tarea}".Contains(searchString))
+            return true;
+        return false;
+    }
+    private IEnumerable<Lavado> Lavados = new List<Lavado>
+    {
+        new Lavado
+        {
+            Id = 1,
+            Lavador = "Jose Martinez",
+            Tarea = "Lavado Interior",
+            Fecha = DateTime.Today.AddDays(-1)
+        },
+        new Lavado
+        {
+            Id = 2,
+            Lavador = "Luis Suarez",
+            Tarea = "Lavado Exterior",
+            Fecha = DateTime.Today.AddDays(-2)
+        },
+        new Lavado
+        {
+            Id = 3,
+            Lavador = "Leonardo Govea",
+            Tarea = "Lavado Exterior",
+            Fecha = DateTime.Today.AddDays(-2)
+        },
+        new Lavado
+        {
+            Id = 4,
+            Lavador = "Mario Paez",
+            Tarea = "Lavado Completo",
+            Fecha = DateTime.Today.AddDays(-3)
+        },
+        new Lavado
+        {
+            Id = 5,
+            Lavador = "Jose Martinez",
+            Tarea = "Lavado Completo",
+            Fecha = DateTime.Today.AddDays(-3)
+        },
+        new Lavado
+        {
+            Id = 6,
+            Lavador = "Joshua Perez",
+            Tarea = "Lavado Exterior",
+            Fecha = DateTime.Today.AddDays(-3)
+        },
+    };
+
+    class Lavado
+    {
+        public int Id { get; set; }
+        public string Lavador { get; set; }
+        public string Tarea { get; set; }
+        public DateTime Fecha { get; set; }
+    }
+
+    private void NavegarAEliminarLavado()
+    {
+        NavigationManager.NavigateTo("/eliminar_lavado");
+    }
+    
+}
+
