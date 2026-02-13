@@ -1,4 +1,4 @@
-@page "/registrar_tarea"
+@page "/lavados/tareas/registrar_tarea"
 
 @using MudBlazor
 @using System.Text.RegularExpressions
@@ -38,7 +38,7 @@
                                Color="Color.Primary"
                                DisableElevation="true"
                                Class="ml-auto"
-                               OnClick="RegistrarTarea">
+                               OnClick="TryRegistrarTarea">
                         Registrar Tarea
                     </MudButton>
                 </MudCardActions>
@@ -58,7 +58,7 @@
     string nombreTarea;
     string comision;
 
-    void RegistrarTarea()
+    void TryRegistrarTarea()
     {
         form.Validate();
         if (form.IsValid)

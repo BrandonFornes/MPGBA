@@ -1,4 +1,4 @@
-@page "/prestamos"
+@page "/herramientas/prestamos"
 @using MudBlazor
 @inject NavigationManager NavigationManager
 
@@ -126,12 +126,12 @@
 
     private void NavegarARegistrarPrestamo()
     {
-        NavigationManager.NavigateTo("/RegistrarPrestamo");
+        NavigationManager.NavigateTo("/herramientas/prestamos/registrar_prestamo");
     }
 
     private void NavegarADevolverPrestamo()
     {
-        NavigationManager.NavigateTo("/DevolverPrestamo");
+        NavigationManager.NavigateTo("/herramientas/prestamos/devolver_prestamo");
     }
 
     public class Prestamo
