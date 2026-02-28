@@ -14,16 +14,169 @@
                        Size="Size.Large"
                        Color="Color.Tertiary"
                        Class="mr-3"
-                       @onclick="NavegarARegistrarPrestamo">
+                       OnClick="@AbrirPrestamo">
                 Agregar Préstamo
             </MudButton>
 
             <MudButton Variant="Variant.Filled"
                        Size="Size.Large"
                        Color="Color.Info"
-                       @onclick="NavegarADevolverPrestamo">
+                        OnClick="@AbrirDevolucion">
+
                 Devolver Préstamo
             </MudButton>
+
+            @*Overlay de Prestamo*@
+            <MudOverlay Visible="_abrePrestamo" OnClick="@AbrirPrestamo" DarkBackground="true" ZIndex="5" />
+
+            @*Overlay de Devolucion*@
+            <MudOverlay Visible="_abreDevolucion" OnClick="@AbrirDevolucion" DarkBackground="true" ZIndex="5" />
+
+            @*Popover para registrar el prestamo*@
+            <MudPopover Open="@_abrePrestamo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Registrar Préstamo
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+
+                            <MudSelect T="string"
+                                    Label="Ingrese Código Del Operario"
+                                    @bind-Value="operarioSeleccionado"
+                                    Variant="Variant.Outlined"
+                                    Required="true"
+                                    RequiredError="Campo Obligatorio"
+                                    AnchorOrigin="Origin.BottomCenter"
+                                    Class="mb-4">
+
+                                @foreach (var codigo in _codigos)
+                                {
+                                    <MudSelectItem Value="@codigo">@codigo</MudSelectItem>
+                                }
+
+                            </MudSelect>
+
+                            @if (!string.IsNullOrEmpty(operarioSeleccionado))
+                            {
+                                <MudSelect T="string"
+                                        Label="Escoge la(s) herramientas"
+                                        Variant="Variant.Outlined"
+                                        MultiSelection="true"
+                                        Required="true"
+                                        RequiredError="Campo Obligatorio"
+                                        Class="mb-4"
+                                        AnchorOrigin="Origin.BottomCenter"
+                                        @bind-Value="_textoHerramientas"
+                                        @bind-SelectedValues="_herramientasSeleccionadas">
+
+                                    @foreach (var state in _states)
+                                    {
+                                        <MudSelectItem Value="@state">@state</MudSelectItem>
+                                    }
+
+                                </MudSelect>
+
+                                <MudTextField T="string"
+                                            Label="NIP"
+                                            Placeholder="Ingrese NIP único"
+                                            InputType="InputType.Password"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Campo Obligatorio"
+                                            Class="mb-4" />
+
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Filled"
+                                            Color="Color.Primary"
+                                            Class="ml-auto"
+                                            StartIcon="@Icons.Material.Filled.Save"
+                                            OnClick="@AbrirPrestamo">
+                                        Registrar Préstamo
+                                    </MudButton>
+                                </MudCardActions>
+                            }
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+            @*Popover para devolver el prestamo*@
+            <MudPopover Open="@_abreDevolucion" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Devolver Préstamo
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+
+                            <MudSelect T="string"
+                                    Label="Ingrese Código Del Operario"
+                                    @bind-Value="operarioSeleccionado"
+                                    Variant="Variant.Outlined"
+                                    Required="true"
+                                    RequiredError="Campo Obligatorio"
+                                    Class="mb-4"
+                                    AnchorOrigin="Origin.BottomCenter">
+
+                                @foreach (var codigo in _codigos)
+                                {
+                                    <MudSelectItem Value="@codigo">@codigo</MudSelectItem>
+                                }
+
+                            </MudSelect>
+
+                            @if (!string.IsNullOrEmpty(operarioSeleccionado))
+                            {
+                                <MudSelect T="string"
+                                        Label="Escoge la(s) herramientas a devolver"
+                                        Variant="Variant.Outlined"
+                                        MultiSelection="true"
+                                        Required="true"
+                                        RequiredError="Campo Obligatorio"
+                                        Class="mb-4"
+                                        AnchorOrigin="Origin.BottomCenter"
+                                        @bind-Value="_textoHerramientas"
+                                        @bind-SelectedValues="_herramientasSeleccionadas">
+
+                                    @foreach (var state in _states)
+                                    {
+                                        <MudSelectItem Value="@state">@state</MudSelectItem>
+                                    }
+
+                                </MudSelect>
+
+                                <MudTextField T="string"
+                                            Label="NIP"
+                                            InputType="InputType.Password"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Campo Obligatorio"
+                                            Class="mb-4" />
+
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Filled"
+                                            Color="Color.Primary"
+                                            Class="ml-auto"
+                                            StartIcon="@Icons.Material.Filled.AssignmentReturn"
+                                            OnClick="@AbrirDevolucion">
+                                        Devolver
+                                    </MudButton>
+                                </MudCardActions>
+                            }
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
         </MudPaper>
 
 <MudDataGrid T="Prestamo"
@@ -63,7 +216,28 @@
 </MudItem>
 </MudGrid>
 
+
 @code {
+
+    public bool _abrePrestamo;
+
+    public void AbrirPrestamo()
+    {
+        if (_abrePrestamo)
+            _abrePrestamo = false;
+        else
+            _abrePrestamo = true;
+    }
+
+    public bool _abreDevolucion;
+
+    public void AbrirDevolucion()
+    {
+        if (_abreDevolucion)
+            _abreDevolucion = false;
+        else
+            _abreDevolucion = true;
+    }
 
     private string _searchString;
     private List<Prestamo> PrestamosH = new();
@@ -141,5 +315,46 @@
         public string CodigoEncargado { get; set; }
         public string NombreEncargado { get; set; }
         public DateTime FechaSolicitud { get; set; }
+    }
+
+    MudForm formulario;
+    bool mostrarExito = false;
+
+    string operarioSeleccionado;
+
+    private string _textoHerramientas = "Nada seleccionado";
+    private IEnumerable<string> _herramientasSeleccionadas = new HashSet<string>();
+
+    void GuardarPrestamo()
+    {
+        formulario.Validate();
+        if (formulario.IsValid)
+        {
+            mostrarExito = true;
+        }
+    }
+
+    private readonly string[] _states = new[]
+    {
+        "Martillo", "Destornillador plano", "Destornillador de cruz", "Llave inglesa",
+        "Llave de matraca", "Juego de dados", "Pinzas universales", "Pinzas de punta",
+        "Taladro eléctrico", "Brocas", "Sierra manual", "Sierra eléctrica",
+        "Esmeril", "Lijadora", "Cinta métrica", "Nivel de burbuja",
+        "Prensa tipo C", "Gato hidráulico", "Compresor de aire", "Soldadora"
+    };
+
+    private readonly string[] _codigos = new[]
+    {
+        "OPR001","OPR002","OPR003","OPR004","OPR005",
+        "OPR006","OPR007","OPR008","OPR009","OPR010"
+    };
+
+    void TryDevolverPrestamo()
+    {
+        formulario.Validate();
+        if (formulario.IsValid)
+        {
+            mostrarExito = true;
+        }
     }
 }
