@@ -11,5 +11,9 @@ public partial class Nip
 
     public string NipNip { get; set; } = null!;
 
+    public DateTime NipFechaModificacion { get; set; }
+
+    public int NipUsuarioModifico { get; set; }
+
     public virtual Operario NipFkCodigoOperarioNavigation { get; set; } = null!;
 }

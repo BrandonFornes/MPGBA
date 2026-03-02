@@ -23,6 +23,12 @@ public partial class Prestamo
 
     public string? PrsComentario { get; set; }
 
+    public DateTime PrsFechaModificacion { get; set; }
+
+    public int PrsUsuarioModifico { get; set; }
+
+    public virtual ICollection<PrestamosDetalle> PrestamosDetalles { get; } = new List<PrestamosDetalle>();
+
     public virtual Operario PrsFkCodigoEncargadoNavigation { get; set; } = null!;
 
     public virtual Operario PrsFkCodigoOperarioNavigation { get; set; } = null!;

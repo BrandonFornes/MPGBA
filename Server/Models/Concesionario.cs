@@ -22,6 +22,4 @@ public partial class Concesionario
     public virtual Empresa FkIdEmpresaNavigation { get; set; } = null!;
 
     public virtual ICollection<HistorialMantenimiento> HistorialMantenimientos { get; } = new List<HistorialMantenimiento>();
-
-    public virtual ICollection<Vehiculo> Vehiculos { get; } = new List<Vehiculo>();
 }

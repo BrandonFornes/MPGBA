@@ -19,11 +19,13 @@ public partial class Herramienta
 
     public DateTime? HrmFechaCompra { get; set; }
 
-    public string HrmMarcaHerramienta { get; set; } = null!;
+    public string? HrmMarcaHerramienta { get; set; }
 
-    public int HrmFkTipo { get; set; }
+    public DateTime HrmFechaModificacion { get; set; }
 
-    public virtual TiposHerramienta HrmFkTipoNavigation { get; set; } = null!;
+    public int HrmUsuarioModifico { get; set; }
 
     public virtual ICollection<Prestamo> Prestamos { get; } = new List<Prestamo>();
+
+    public virtual ICollection<PrestamosDetalle> PrestamosDetalles { get; } = new List<PrestamosDetalle>();
 }

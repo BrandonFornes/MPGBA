@@ -13,7 +13,9 @@ public partial class HistorialMantenimiento
 
     public int HmnFkIdConcesionario { get; set; }
 
-    public virtual Concesionario HmnFkIdConcesionarioNavigation { get; set; } = null!;
+    public DateTime HmnFechaModificacion { get; set; }
 
-    public virtual Vehiculo HmnFkIdVehiculoNavigation { get; set; } = null!;
+    public int HmnUsuarioModifico { get; set; }
+
+    public virtual Concesionario HmnFkIdConcesionarioNavigation { get; set; } = null!;
 }

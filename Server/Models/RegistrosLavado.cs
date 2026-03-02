@@ -15,6 +15,10 @@ public partial class RegistrosLavado
 
     public decimal RlvComisionRegistro { get; set; }
 
+    public DateTime RlvFechaModificacion { get; set; }
+
+    public int RlvUsuarioModifico { get; set; }
+
     public virtual Operario RlvFkCodigoOperarioNavigation { get; set; } = null!;
 
     public virtual Tarea RlvFkIdTareaNavigation { get; set; } = null!;

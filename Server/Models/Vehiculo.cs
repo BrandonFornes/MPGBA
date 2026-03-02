@@ -5,23 +5,29 @@ namespace AdminHerramientas.Server.Models;
 
 public partial class Vehiculo
 {
-    public int VehId { get; set; }
+    public DateTime Fechafin { get; set; }
 
-    public string VehNoSerie { get; set; } = null!;
+    public string Idv { get; set; } = null!;
 
-    public int VehFkIdModelo { get; set; }
+    public string? Bastidor { get; set; }
 
-    public int VehAnio { get; set; }
+    public string? Marca { get; set; }
 
-    public DateTime VehFechaLlegada { get; set; }
+    public string? DesMarca { get; set; }
 
-    public DateTime? VehUltimoMantenimiento { get; set; }
+    public string? Modelo { get; set; }
 
-    public int VehFkIdConcesionarioActual { get; set; }
+    public string? DesModelo { get; set; }
 
-    public virtual ICollection<HistorialMantenimiento> HistorialMantenimientos { get; } = new List<HistorialMantenimiento>();
+    public string? Color { get; set; }
 
-    public virtual Concesionario VehFkIdConcesionarioActualNavigation { get; set; } = null!;
+    public string? DesColor { get; set; }
 
-    public virtual Modelo VehFkIdModeloNavigation { get; set; } = null!;
+    public decimal? Km { get; set; }
+
+    public string? Familia { get; set; }
+
+    public string? DesFamilia { get; set; }
+
+    public string? AnioVehi { get; set; }
 }
