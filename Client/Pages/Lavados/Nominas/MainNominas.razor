@@ -16,16 +16,176 @@
                        Size="Size.Large"
                        Color="Color.Tertiary"
                        Class="mr-3"
-                       @onclick="NavegarARegistrarLavado">
+                       OnClick="@AbrirCrearLavado">
                 Registrar Lavado
             </MudButton>
 
             <MudButton Variant="Variant.Filled"
                        Size="Size.Large"
                        Color="Color.Info"
-                       @onclick="NavegarAGenerarNomina">
+                       OnClick="@AbrirGenerarNomina">
                 Generar Nómina
             </MudButton>
+
+            @*Overlay de Prestamo*@
+            <MudOverlay Visible="_abreCrearLavado" OnClick="@AbrirCrearLavado" DarkBackground="true" ZIndex="5" />
+
+            @*Overlay de Devolucion*@
+            <MudOverlay Visible="_abreGenerarNomina" OnClick="@AbrirGenerarNomina" DarkBackground="true" ZIndex="5" />
+
+            <MudOverlay Visible="_abreEliminarLavado" OnClick="@AbrirEliminarLavado" DarkBackground="true" ZIndex="5" />
+
+
+            @*Popover para devolver el prestamo*@
+            <MudPopover Open="@_abreCrearLavado" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Registrar Lavado
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="form" Spacing="9">
+                            <MudSelect T="string"
+                                    Label="Lavador"
+                                    Variant="Variant.Outlined"
+                                    Required="true"
+                                    RequiredError="Campo obligatorio"
+                                    AnchorOrigin="Origin.BottomCenter"
+                                    @bind-Value="lavadorSeleccionado"
+                                    Class="mb-4">
+
+                                @foreach (var lavador in _lavadores)
+                                {
+                                    <MudSelectItem Value="@lavador">@lavador</MudSelectItem>
+                                }
+
+                            </MudSelect>
+
+                            @if (!string.IsNullOrEmpty(lavadorSeleccionado))
+                            {
+                                <MudSelect T="string"
+                                        Label="Tarea"
+                                        Variant="Variant.Outlined"
+                                        Required="true"
+                                        RequiredError="Campo obligatorio"
+                                        AnchorOrigin="Origin.BottomCenter"
+                                        @bind-Value="tareaSeleccionada"
+                                        Class="mb-4">
+
+                                    @foreach (var tarea in _tareas)
+                                    {
+                                        <MudSelectItem Value="@tarea">@tarea</MudSelectItem>
+                                    }
+
+                                </MudSelect>
+
+                                <MudDatePicker Label="Fecha"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Campo obligatorio"
+                                            @bind-Date="fechaSeleccionada"
+                                            Class="mb-4" />
+
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Filled"
+                                            Color="Color.Primary"
+                                                Class="ml-auto"
+                                            DisableElevation="true"
+                                            OnClick="@AbrirCrearLavado">
+                                        Registrar Lavado
+                                    </MudButton>
+                                </MudCardActions>
+                            }
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+
+            <MudPopover Open="@_abreGenerarNomina" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Generar Nomina de Lavador
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="form2" Spacing="9">
+                            <MudSelect T="string" Label="Lavador" AnchorOrigin="Origin.BottomCenter">
+                                <MudSelectItem Value="@("Luis")" />
+                                <MudSelectItem Value="@("Jose")" />
+                                <MudSelectItem Value="@("Pepe")" />
+                            </MudSelect>
+
+                        
+                        </MudForm>
+                    </MudStack>
+
+                    <MudPaper Class="pa-4 mt-4">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="ToggleComponentes">Generar Nomina </MudButton>            
+                    </MudPaper>
+
+                    @if (mostrar)
+                    {
+                        <MudPaper Class="pa-4 mt-4">
+                            <MudSimpleTable Hover="true" Dense="true" FixedHeader="@fixedheader" Style="@(fixedheader?"height:300px;":"")">
+                                <thead>
+                                    <tr>
+                                        @foreach (var h in headings)
+                                        {
+                                            <th>@h</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in rows)
+                                    {
+                                        <tr>
+                                            @foreach (var x in row.Split())
+                                            {
+                                                <td>@x</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </MudPaper>
+                        <MudPaper Class="pa-4 mt-4">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(() => form.Reset())">Generar Archivo (.csv) </MudButton>            
+                        </MudPaper>
+                    }
+
+                </div>
+            </MudPopover>
+
+            <MudPopover Open="@_abreEliminarLavado" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Eliminar Lavado
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="form2" Spacing="9">
+                            <MudTextField T="string" Label="Id Lavado" />
+
+                            <MudPaper Class="pa-4 mt-4">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@AbrirEliminarLavado">Eliminar Lavado</MudButton>            
+                            </MudPaper>
+                        
+                        </MudForm>
+                    </MudStack>
+
+                </div>
+            </MudPopover>
+
+
+
         </MudPaper>
 
 <MudDataGrid T="Lavado"
@@ -130,4 +290,99 @@
         public string Tarea { get; set; }
         public DateTime Fecha { get; set; }
     }
+
+
+    public bool _abreCrearLavado;
+
+    public void AbrirCrearLavado()
+    {
+        if (_abreCrearLavado)
+            _abreCrearLavado = false;
+        else
+            _abreCrearLavado = true;
+    }
+
+
+    bool success;
+    string[] errors = { };
+    MudForm form;
+
+    string lavadorSeleccionado;
+    string tareaSeleccionada;
+    DateTime? fechaSeleccionada;
+
+    void TryRegistrarLavado()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            form.Reset();
+            lavadorSeleccionado = null;
+            tareaSeleccionada = null;
+            fechaSeleccionada = null;
+        }
+    }
+
+    private readonly string[] _lavadores = { "Luis", "Jose", "Pepe" };
+
+    private readonly string[] _tareas = { "Completo", "Interior", "Exterior" };
+
+
+
+    public bool _abreGenerarNomina;
+
+    public void AbrirGenerarNomina()
+    {
+        if (_abreGenerarNomina)
+            _abreGenerarNomina = false;
+        else
+            _abreGenerarNomina = true;
+    }
+
+
+
+    MudTextField<string> pwField1;
+    MudForm form2;
+
+    private bool mostrar = false;
+
+    private void ToggleComponentes()
+    {
+        mostrar = !mostrar;
+    }
+
+    
+
+    bool fixedheader = true;
+    string[] headings = { "ID", "Lavador", "Tarea", "Fecha", "Comisión" };
+    string[] rows = {
+        @"1 Luis LavadoCompleto 12/09/2026 70$",
+        @"2 Luis LavadoInterior 12/09/2026 35$",
+        @"3 Luis LavadoCompleto 12/09/2026 70$",
+        @"4 Luis LavadoExterior 12/09/2026 40$",
+        @"5 Luis LavadoExterior 12/09/2026 40$",
+        @"6 Luis LavadoCompleto 12/09/2026 70$",
+        @"7 Luis LavadoExterior 12/09/2026 40$",
+        @"8 Luis LavadoInterior 12/09/2026 35$",
+        @"9 Luis LavadoCompleto 12/09/2026 70$",
+        @"10 Luis LavadoExterior 12/09/2026 40$",
+        @"11 Luis LavadoCompleto 12/09/2026 70$",
+        @"12 Luis LavadoCompleto 12/09/2026 70$",
+        @"13 Luis LavadoInterior 12/09/2026 35$",
+    };
+
+
+    public bool _abreEliminarLavado;
+
+    public void AbrirEliminarLavado()
+    {
+        if (_abreEliminarLavado)
+            _abreEliminarLavado = false;
+        else
+            _abreEliminarLavado = true;
+    }
+
+
+
+
 }
