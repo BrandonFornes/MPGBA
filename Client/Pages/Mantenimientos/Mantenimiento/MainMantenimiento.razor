@@ -11,12 +11,56 @@
 
         <MudPaper Class="pa-4 mb-4">
             <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3"
-                       @onclick="NavegarARegistrarMantenimiento">Registrar Mantenimiento</MudButton>
+                       OnClick="@AbrirCrearMantenimiento">Registrar Mantenimiento</MudButton>
 
-            @*
-                        <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info"
-                       @onclick="NavegarARegistrarModelo">Agregar Modelo</MudButton>
-                       *@
+            <MudOverlay Visible="_abreCrearMantenimiento" OnClick="@AbrirCrearMantenimiento" DarkBackground="true" ZIndex="5" />
+
+            <MudPopover Open="@_abreCrearMantenimiento" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Registrar Mantenimiento
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                            <MudSelect T="string"
+                                    Label="Selecciona Vehículo"
+                                    @bind-Value="vehiculoSeleccionado"
+                                    Variant="Variant.Outlined"
+                                    Required="true"
+                                    RequiredError="Campo Obligatorio"
+                                    Searchable="true"
+                                    AnchorOrigin="Origin.BottomCenter"
+                                    Class="mb-4">
+
+                                @foreach (var vehiculo in _vehiculos)
+                                {
+                                    <MudSelectItem Value="@vehiculo">
+                                        @vehiculo
+                                    </MudSelectItem>
+                                }
+
+                            </MudSelect>
+
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled"
+                                        Color="Color.Primary"
+                                        Class="ml-auto"
+                                        StartIcon="@Icons.Material.Filled.Save"
+                                        OnClick="@AbrirCrearMantenimiento">
+                                    Registrar Mantenimiento
+                                </MudButton>
+                            </MudCardActions>
+
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+            
 
         </MudPaper>
 
@@ -142,5 +186,47 @@
 
         return false;
     }
+
+    public bool _abreCrearMantenimiento;
+    public void AbrirCrearMantenimiento()
+    {
+        if (_abreCrearMantenimiento)
+            _abreCrearMantenimiento = false;
+        else
+            _abreCrearMantenimiento = true;
+    }
+
+        MudForm formulario;
+    bool mostrarExito = false;
+
+    string vehiculoSeleccionado;
+
+    void GuardarMantenimiento()
+    {
+        formulario.Validate();
+
+        if (formulario.IsValid)
+        {
+            mostrarExito = true;
+        }
+    }
+
+    private readonly string[] _vehiculos = new[]
+    {
+        "101 - FRD-2024-X - Ford Ranger Raptor - FORD CIUDAD OBREGON",
+        "102 - MZD-5544-Y - Mazda CX-5 - MAZDA LOS MOCHIS",
+        "103 - JEEP-WRG-4X4 - Jeep Wrangler Rubicon - JEEP CIUDAD OBREGON",
+        "104 - PEU-2008-GT - Peugeot 2008 GT - PEUGEOT CIUDAD OBREGON",
+        "105 - JEEP-WRG-4X4 - Jeep Wrangler Rubicon - JEEP CIUDAD OBREGON",
+        "106 - RAM-700-LRAM - Ram 700 Laramie - RAM TRES RIOS",
+        "107 - JET-X70-PLUS - Jetour X70 Plus - JETOUR MAZATLAN",
+        "108 - LNC-NVG-BLK - Lincoln Navigator - LINCOLN CULIACAN",
+        "109 - FIA-PLS-ABTH - Fiat Pulse Abarth - FIAT TRES RIOS",
+        "110 - BST-B70-TURB - Bestune B70 - BESTUNE OBREGON",
+        "111 - JIM-REMAX-42 - JIM Re-Max S - JIM HERMOSILLO",
+        "112 - DGE-ATT-SXT - Dodge Attitude - DODGE CIUDAD OBREGON",
+        "113 - VOL-XC60-HYB - Volvo XC60 Recharge - VOLVO CULIACAN"
+    };
+
 
 }

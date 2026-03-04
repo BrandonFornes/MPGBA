@@ -14,16 +14,80 @@
                        Size="Size.Large"
                        Color="Color.Tertiary"
                        Class="mr-3"
-                       @onclick="NavegarCrearHerramienta">
+                       OnClick="@AbrirCrearHerramienta">
                 Crear Herramienta
             </MudButton>
 
             <MudButton Variant="Variant.Filled"
                        Size="Size.Large"
                        Color="Color.Info"
-                       @onclick="NavegarCrearTipoDeHerramienta">
+                       OnClick="@AbrirCrearTipo">
                 Crear Tipo de Herramienta
             </MudButton>
+
+            @*Overlay de Crear Herramienta*@
+            <MudOverlay Visible="_abreCrearHerramienta" OnClick="@AbrirCrearHerramienta" DarkBackground="true" ZIndex="5" />
+
+            @*Overlay de Crear Tipo de Herramienta*@
+            <MudOverlay Visible="_abreCrearTipo" OnClick="@AbrirCrearTipo" DarkBackground="true" ZIndex="5" />
+
+
+            @*Popover para crear herramienta*@
+            <MudPopover Open="@_abreCrearHerramienta" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Crear Herramienta
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                            <MudTextField @bind-Value="Nombre" Label="Nombre de Herramienta" Variant="Variant.Text"></MudTextField>
+
+                            <MudTextField @bind-Value="Etiqueta" Label="Etiqueta" Variant="Variant.Text"></MudTextField>
+
+                            <MudTextField @bind-Value="Descripcion" Label="Descripcion (Opcional)" Variant="Variant.Text"></MudTextField>
+
+                            <MudSelect T="string" Label="Tipo de Herramienta" MultiSelection="false" @bind-Value="_value" @bind-SelectedValue="_options">
+                                @foreach (var state in _states)
+                                {
+                                    <MudSelectItem T="string" Value="@state">@state</MudSelectItem>
+                                }
+                            </MudSelect>
+
+                            <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Fecha de Compra" InputType="InputType.Date" />
+
+                            <MudTextField @bind-Value="Marca" Label="Marca de Herramienta" Variant="Variant.Text"></MudTextField>
+
+                            <MudCardActions>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary " Class="ml-auto" OnClick="@AbrirCrearHerramienta">CREAR</MudButton>
+                            </MudCardActions>
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+            @*Popover para crear herramienta*@
+            <MudPopover Open="@_abreCrearTipo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Crear Herramienta
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario2" Spacing="9">
+                            <MudTextField @bind-Value="Nombre" Label="Tipo de Herramienta" Variant="Variant.Text"></MudTextField>
+
+                            <MudCardActions>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@AbrirCrearTipo">CREAR</MudButton>
+                            </MudCardActions>
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
         </MudPaper>
 
 <MudDataGrid T="Herramienta"
@@ -137,4 +201,45 @@
         public bool Disponible { get; set; }
         public string TipoHerramienta { get; set; }
     }
+
+
+    public bool _abreCrearHerramienta;
+
+    public void AbrirCrearHerramienta()
+    {
+        if (_abreCrearHerramienta)
+            _abreCrearHerramienta = false;
+        else
+            _abreCrearHerramienta = true;
+    }
+
+    public bool _abreCrearTipo;
+
+    public void AbrirCrearTipo()
+    {
+        if (_abreCrearTipo)
+            _abreCrearTipo = false;
+        else
+            _abreCrearTipo = true;
+    }
+    
+    public string Nombre { get; set; }
+    public string Etiqueta { get; set; }
+    public string Descripcion { get; set; }
+    public string Marca { get; set; }
+    private string _value = "";
+    private IEnumerable<string> _options = new HashSet<string> { };
+    private readonly string[] _states = new[]
+    {
+        "Manual",
+        "Eléctricas",
+        "Neumáticas",
+        "Hidráulicas",
+        "Medicion",
+    };
+
+    MudForm formulario;
+
+    MudForm formulario2;
+
 }

@@ -3,6 +3,8 @@
 @using MudBlazor
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@using System.Text.RegularExpressions
+
 
 <PageTitle>Lista Tareas</PageTitle>
 
@@ -18,9 +20,57 @@
                        Size="Size.Large"
                        Color="Color.Tertiary"
                        Class="mr-3"
-                       @onclick="NavegarARegistrarTarea">
+                       OnClick="@AbrirCrearTarea">
                 Registrar Tarea
             </MudButton>
+
+            @*Overlay de Agregar Tarea*@
+            <MudOverlay Visible="_abreCrearTarea" OnClick="@AbrirCrearTarea" DarkBackground="true" ZIndex="5" />
+
+            @*Popover para registrar el prestamo*@
+            <MudPopover Open="@_abreCrearTarea" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    Registrar Tarea
+                </MudText>
+                
+                <div style="width: 1000px; heigth: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                                            <MudTextField T="string"
+                                        Label="Tarea"
+                                        Variant="Variant.Outlined"
+                                        Required="true"
+                                        RequiredError="Campo obligatorio"
+                                        @bind-Value="nombreTarea"
+                                        Class="mb-4" />
+
+                            <MudTextField T="string"
+                                        Label="Comisión"
+                                        Variant="Variant.Outlined"
+                                        Required="true"
+                                        RequiredError="Campo obligatorio"
+                                        @bind-Value="comision"
+                                        Immediate="true"
+                                        Validation="ValidarComision"
+                                        Class="mb-4" />
+
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled"
+                                        Color="Color.Primary"
+                                        DisableElevation="true"
+                                        Class="ml-auto"
+                                        OnClick="@AbrirCrearTarea">
+                                    Registrar Tarea
+                                </MudButton>
+                            </MudCardActions>
+
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
         </MudPaper>
 
 <MudDataGrid T="Tarea"
@@ -111,4 +161,51 @@
     {
         NavigationManager.NavigateTo("/lavados/tareas/eliminar_tarea");
     }
+
+
+    MudForm formulario;
+    public bool _abreCrearTarea;
+
+    public void AbrirCrearTarea()
+    {
+        if (_abreCrearTarea)
+            _abreCrearTarea = false;
+        else
+            _abreCrearTarea = true;
+    }
+
+    bool success;
+    string[] errors = { };
+    MudForm form;
+
+    string nombreTarea;
+    string comision;
+
+    void TryRegistrarTarea()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            form.Reset();
+            nombreTarea = null;
+            comision = null;
+        }
+    }
+
+    private string ValidarComision(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "Campo obligatorio";
+
+        // Only numbers with exactly two decimals
+        var regex = new Regex(@"^\d+(\.\d{2})$");
+
+        if (!regex.IsMatch(value))
+            return "Debe ser un número con exactamente 2 decimales (ej. 100.00)";
+
+        return null;
+    }
+
+
+
 }
