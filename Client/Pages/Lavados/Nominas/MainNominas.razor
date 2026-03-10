@@ -81,6 +81,25 @@
 
                                 </MudSelect>
 
+                                <MudSelect T="string"
+                                    Label="Selecciona Vehículo"
+                                    @bind-Value="vehiculoSeleccionado"
+                                    Variant="Variant.Outlined"
+                                    Required="true"
+                                    RequiredError="Campo Obligatorio"
+                                    Searchable="true"
+                                    AnchorOrigin="Origin.BottomCenter"
+                                    Class="mb-4">
+
+                                @foreach (var vehiculo in _vehiculos)
+                                {
+                                    <MudSelectItem Value="@vehiculo">
+                                        @vehiculo
+                                    </MudSelectItem>
+                                }
+
+                            </MudSelect>
+
                                 <MudDatePicker Label="Fecha"
                                             Variant="Variant.Outlined"
                                             Required="true"
@@ -210,6 +229,7 @@
         <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
         <PropertyColumn Property="x => x.Lavador" Title="Lavador" />
         <PropertyColumn Property="x => x.Tarea" Title="Tarea" />
+        <PropertyColumn Property="x => x.Vehiculo" Title="Vehiculo" />
         <PropertyColumn Property="x => x.Fecha"
                         Title="Fecha"
                         Format="dd/MM/yyyy" />
@@ -242,12 +262,12 @@
     {
         Lavados.AddRange(new[]
         {
-            new Lavado { Id = 1, Lavador = "Jose Martinez", Tarea = "Lavado Interior", Fecha = DateTime.Today.AddDays(-1) },
-            new Lavado { Id = 2, Lavador = "Luis Suarez", Tarea = "Lavado Exterior", Fecha = DateTime.Today.AddDays(-2) },
-            new Lavado { Id = 3, Lavador = "Leonardo Govea", Tarea = "Lavado Exterior", Fecha = DateTime.Today.AddDays(-2) },
-            new Lavado { Id = 4, Lavador = "Mario Paez", Tarea = "Lavado Completo", Fecha = DateTime.Today.AddDays(-3) },
-            new Lavado { Id = 5, Lavador = "Jose Martinez", Tarea = "Lavado Completo", Fecha = DateTime.Today.AddDays(-3) },
-            new Lavado { Id = 6, Lavador = "Joshua Perez", Tarea = "Lavado Exterior", Fecha = DateTime.Today.AddDays(-3) }
+            new Lavado { Id = 1, Lavador = "Jose Martinez", Tarea = "Lavado Interior", Vehiculo = "MZD-5544-Y", Fecha = DateTime.Today.AddDays(-1) },
+            new Lavado { Id = 2, Lavador = "Luis Suarez", Tarea = "Lavado Exterior", Vehiculo = "MZD-5544-Y", Fecha = DateTime.Today.AddDays(-2) },
+            new Lavado { Id = 3, Lavador = "Leonardo Govea", Tarea = "Lavado Exterior", Vehiculo = "MZD-5544-Y", Fecha = DateTime.Today.AddDays(-2) },
+            new Lavado { Id = 4, Lavador = "Mario Paez", Tarea = "Lavado Completo", Vehiculo = "MZD-5544-Y", Fecha = DateTime.Today.AddDays(-3) },
+            new Lavado { Id = 5, Lavador = "Jose Martinez", Tarea = "Lavado Completo", Vehiculo = "MZD-5544-Y", Fecha = DateTime.Today.AddDays(-3) },
+            new Lavado { Id = 6, Lavador = "Joshua Perez", Tarea = "Lavado Exterior", Vehiculo = "MZD-5544-Y", Fecha = DateTime.Today.AddDays(-3) }
         });
     }
 
@@ -288,6 +308,8 @@
         public int Id { get; set; }
         public string Lavador { get; set; }
         public string Tarea { get; set; }
+
+        public string Vehiculo {get; set;}
         public DateTime Fecha { get; set; }
     }
 
@@ -354,21 +376,21 @@
     
 
     bool fixedheader = true;
-    string[] headings = { "ID", "Lavador", "Tarea", "Fecha", "Comisión" };
+    string[] headings = { "ID", "Lavador", "Tarea", "Vehiculo", "Fecha", "Comisión" };
     string[] rows = {
-        @"1 Luis LavadoCompleto 12/09/2026 70$",
-        @"2 Luis LavadoInterior 12/09/2026 35$",
-        @"3 Luis LavadoCompleto 12/09/2026 70$",
-        @"4 Luis LavadoExterior 12/09/2026 40$",
-        @"5 Luis LavadoExterior 12/09/2026 40$",
-        @"6 Luis LavadoCompleto 12/09/2026 70$",
-        @"7 Luis LavadoExterior 12/09/2026 40$",
-        @"8 Luis LavadoInterior 12/09/2026 35$",
-        @"9 Luis LavadoCompleto 12/09/2026 70$",
-        @"10 Luis LavadoExterior 12/09/2026 40$",
-        @"11 Luis LavadoCompleto 12/09/2026 70$",
-        @"12 Luis LavadoCompleto 12/09/2026 70$",
-        @"13 Luis LavadoInterior 12/09/2026 35$",
+        @"1 Luis LavadoCompleto FRD-2024-X 12/09/2026 70$",
+        @"2 Luis LavadoInterior MZD-5544-Y 12/09/2026 35$",
+        @"3 Luis LavadoCompleto JEEP-WRG-4X4 12/09/2026 70$",
+        @"4 Luis LavadoExterior PEU-2008-GT 12/09/2026 40$",
+        @"5 Luis LavadoExterior LNC-NVG-BLK 12/09/2026 40$",
+        @"6 Luis LavadoCompleto DGE-ATT-SXT 12/09/2026 70$",
+        @"7 Luis LavadoExterior PEU-2008-GT 12/09/2026 40$",
+        @"8 Luis LavadoInterior DGE-ATT-SXT 12/09/2026 35$",
+        @"9 Luis LavadoCompleto JEEP-WRG-4X4 12/09/2026 70$",
+        @"10 Luis LavadoExterior FIA-PLS-ABTH 12/09/2026 40$",
+        @"11 Luis LavadoCompleto JIM-REMAX-42 12/09/2026 70$",
+        @"12 Luis LavadoCompleto VOL-XC60-HYB 12/09/2026 70$",
+        @"13 Luis LavadoInterior LNC-NVG-BLK 12/09/2026 35$",
     };
 
 
@@ -381,6 +403,25 @@
         else
             _abreEliminarLavado = true;
     }
+
+    string vehiculoSeleccionado;
+    
+    private readonly string[] _vehiculos = new[]
+    {
+        "101 - FRD-2024-X - Ford Ranger Raptor - FORD CIUDAD OBREGON",
+        "102 - MZD-5544-Y - Mazda CX-5 - MAZDA LOS MOCHIS",
+        "103 - JEEP-WRG-4X4 - Jeep Wrangler Rubicon - JEEP CIUDAD OBREGON",
+        "104 - PEU-2008-GT - Peugeot 2008 GT - PEUGEOT CIUDAD OBREGON",
+        "105 - JEEP-WRG-4X4 - Jeep Wrangler Rubicon - JEEP CIUDAD OBREGON",
+        "106 - RAM-700-LRAM - Ram 700 Laramie - RAM TRES RIOS",
+        "107 - JET-X70-PLUS - Jetour X70 Plus - JETOUR MAZATLAN",
+        "108 - LNC-NVG-BLK - Lincoln Navigator - LINCOLN CULIACAN",
+        "109 - FIA-PLS-ABTH - Fiat Pulse Abarth - FIAT TRES RIOS",
+        "110 - BST-B70-TURB - Bestune B70 - BESTUNE OBREGON",
+        "111 - JIM-REMAX-42 - JIM Re-Max S - JIM HERMOSILLO",
+        "112 - DGE-ATT-SXT - Dodge Attitude - DODGE CIUDAD OBREGON",
+        "113 - VOL-XC60-HYB - Volvo XC60 Recharge - VOLVO CULIACAN"
+    };
 
 
 
