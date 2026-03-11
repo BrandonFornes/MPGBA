@@ -52,11 +52,11 @@
                                     <MudSelectItem Value="@herramienta">@herramienta.Tipo</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudTextField @bind-Value="Descripcion" Label="Descripcion de Herramienta" Variant="Variant.Text"></MudTextField>
+                            <MudTextField @bind-Value="DescripcionHerramienta" Label="Descripcion de Herramienta" Variant="Variant.Text"></MudTextField>
 
-                            <MudTextField @bind-Value="Etiqueta" Label="Etiqueta" Variant="Variant.Text"></MudTextField>
+                            <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text"></MudTextField>
 
-                            <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Fecha de Compra" InputType="InputType.Date" />
+                            <MudTextField T="DateTime?" @bind-Value="FechaHerramienta" Format="yyyy-MM-dd" Label="Fecha de Compra" InputType="InputType.Date" />
 
                             <MudCardActions>
                                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@AbrirCrearHerramienta">CREAR</MudButton>
@@ -168,7 +168,6 @@
 
     protected async Task CrearTipoHerramienta()
     {
-        Console.WriteLine("POST ejecutado en main");
         Herramienta herramienta = new Herramienta
         {
             Tipo = NombreHerramienta,
@@ -192,18 +191,18 @@
     {
         HerramientasDetalle herramientasDetalle = new HerramientasDetalle
         {
-            Descripcion = Descripcion,
-            Etiqueta = Etiqueta,
+            Descripcion = DescripcionHerramienta,
+            Etiqueta = EtiquetaHerramienta,
             FkIdHerramienta = TiposHerramientas.FirstOrDefault(x => x.Tipo == _value.Tipo)?.Id ?? 0,
             Disponible = true,
-            FechaModificacion = DateTime.Today,
+            FechaModificacion = FechaHerramienta,
             UsuarioModifico = 1
         };
         var response = await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
         if (response.IsSuccessStatusCode)
         {
-            Descripcion = "";
-            Etiqueta = "";
+            DescripcionHerramienta = "";
+            EtiquetaHerramienta = "";
             _value = null;
             _abreCrearHerramienta = false;
         }
@@ -249,20 +248,11 @@
 
     public string Nombre { get; set; }
     public string NombreHerramienta { get; set; }
-    public string Etiqueta { get; set; }
-    public string Descripcion { get; set; }
-    public string Marca { get; set; }
+    public string EtiquetaHerramienta { get; set; }
+    public string DescripcionHerramienta { get; set; }
+    public DateTime FechaHerramienta { get; set; }
     private Herramienta _value;
     private IEnumerable<string> _options = new HashSet<string> { };
-    private readonly string[] _states = new[]
-    {
-        "Manual",
-        "Eléctricas",
-        "Neumáticas",
-        "Hidráulicas",
-        "Medicion",
-    };
-
     MudForm formulario;
 
     MudForm formulario2;
