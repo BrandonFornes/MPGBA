@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using AdminHerramientas.Server;
 using Microsoft.EntityFrameworkCore;
-
+using AdminHerramientas.Shared.Models;
 namespace AdminHerramientas.Server.Models;
 
 public partial class AlpContext : DbContext
@@ -19,7 +20,9 @@ public partial class AlpContext : DbContext
 
     public virtual DbSet<Empresa> Empresas { get; set; }
 
-    public virtual DbSet<Herramienta> Herramienta { get; set; }
+    public virtual DbSet<Herramienta> Herramientas { get; set; }
+
+    public virtual DbSet<HerramientasDetalle> HerramientasDetalles { get; set; }
 
     public virtual DbSet<HistorialMantenimiento> HistorialMantenimientos { get; set; }
 
@@ -39,7 +42,7 @@ public partial class AlpContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=BRANDON\\SQLEXPRESS; Database=ALP; Trusted_Connection=True; TrustServerCertificate=True ");
+        => optionsBuilder.UseSqlServer("Server=localhost;Database=ALP;Trusted_Connection=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -85,40 +88,37 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<Herramienta>(entity =>
         {
-            entity.HasKey(e => e.HrmId).HasName("PK__Herramie__0D9CCBC7E59670BD");
+            entity.HasKey(e => e.Id).HasName("PK__Herramie__3214EC0786FC08B3");
 
-            entity.Property(e => e.HrmId).HasColumnName("hrm_Id");
-            entity.Property(e => e.HrmDescripcion)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("hrm_descripcion");
-            entity.Property(e => e.HrmDisponible)
-                .IsRequired()
-                .HasDefaultValueSql("((1))")
-                .HasColumnName("hrm_disponible");
-            entity.Property(e => e.HrmEstado)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("hrm_estado");
-            entity.Property(e => e.HrmEtiqueta)
+            entity.Property(e => e.Activo).HasDefaultValueSql("((1))");
+            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
+            entity.Property(e => e.Tipo)
                 .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("hrm_etiqueta");
-            entity.Property(e => e.HrmFechaCompra)
-                .HasColumnType("datetime")
-                .HasColumnName("hrm_fechaCompra");
-            entity.Property(e => e.HrmFechaModificacion)
-                .HasColumnType("datetime")
-                .HasColumnName("hrm_FechaModificacion");
-            entity.Property(e => e.HrmMarcaHerramienta)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("hrm_marcaHerramienta");
-            entity.Property(e => e.HrmNombreHerramienta)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<HerramientasDetalle>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Herrrami__3214EC07BA3C80B3");
+
+            entity.Property(e => e.Activo).HasDefaultValueSql("((1))");
+            entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("hrm_nombreHerramienta");
-            entity.Property(e => e.HrmUsuarioModifico).HasColumnName("hrm_UsuarioModifico");
+                .IsUnicode(false);
+            entity.Property(e => e.Disponible).HasDefaultValueSql("((1))");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(15)
+                .IsUnicode(false);
+            entity.Property(e => e.Etiqueta)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaCompra).HasColumnType("date");
+            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
+            entity.Property(e => e.FkIdHerramienta).HasColumnName("Fk_IdHerramienta");
+
+            entity.HasOne(d => d.FkIdHerramientaNavigation).WithMany(p => p.HerramientasDetalles)
+                .HasForeignKey(d => d.FkIdHerramienta)
+                .HasConstraintName("FK_HerramientasDetalles_Herramientas");
         });
 
         modelBuilder.Entity<HistorialMantenimiento>(entity =>
@@ -187,56 +187,41 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<Prestamo>(entity =>
         {
-            entity.HasKey(e => e.PrsIdPrestamos).HasName("PK__Prestamo__76CEF6F8F0870508");
+            entity.HasKey(e => e.IdPrestamos).HasName("PK__Prestamo__C9249103DF55833E");
 
-            entity.Property(e => e.PrsIdPrestamos).HasColumnName("prs_IdPrestamos");
-            entity.Property(e => e.PrsCodigoServicio)
+            entity.Property(e => e.Activo)
+                .IsRequired()
+                .HasDefaultValueSql("((1))");
+            entity.Property(e => e.CodigoServicio)
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasColumnName("prs_codigoServicio");
-            entity.Property(e => e.PrsComentario)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("prs_comentario");
-            entity.Property(e => e.PrsFechaEntrega)
+                .HasColumnName("codigoServicio");
+            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
+            entity.Property(e => e.FechaSolicitud)
                 .HasColumnType("datetime")
-                .HasColumnName("prs_fechaEntrega");
-            entity.Property(e => e.PrsFechaModificacion)
-                .HasColumnType("datetime")
-                .HasColumnName("prs_FechaModificacion");
-            entity.Property(e => e.PrsFechaSolicitud)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("prs_fechaSolicitud");
-            entity.Property(e => e.PrsFkCodigoEncargado)
+                .HasColumnName("fechaSolicitud");
+            entity.Property(e => e.FkCodigoEncargado)
                 .HasMaxLength(10)
                 .IsUnicode(false)
-                .HasColumnName("prs_fk_codigoEncargado");
-            entity.Property(e => e.PrsFkCodigoOperario)
+                .HasColumnName("fk_codigoEncargado");
+            entity.Property(e => e.FkCodigoOperario)
                 .HasMaxLength(10)
                 .IsUnicode(false)
-                .HasColumnName("prs_fk_codigoOperario");
-            entity.Property(e => e.PrsFkIdHerramienta).HasColumnName("prs_fk_IdHerramienta");
-            entity.Property(e => e.PrsMotivo)
+                .HasColumnName("fk_codigoOperario");
+            entity.Property(e => e.Motivo)
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasColumnName("prs_motivo");
-            entity.Property(e => e.PrsUsuarioModifico).HasColumnName("prs_UsuarioModifico");
+                .HasColumnName("motivo");
 
-            entity.HasOne(d => d.PrsFkCodigoEncargadoNavigation).WithMany(p => p.PrestamoPrsFkCodigoEncargadoNavigations)
-                .HasForeignKey(d => d.PrsFkCodigoEncargado)
+            entity.HasOne(d => d.FkCodigoEncargadoNavigation).WithMany(p => p.PrestamoFkCodigoEncargadoNavigations)
+                .HasForeignKey(d => d.FkCodigoEncargado)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Prestamos_Encargado");
 
-            entity.HasOne(d => d.PrsFkCodigoOperarioNavigation).WithMany(p => p.PrestamoPrsFkCodigoOperarioNavigations)
-                .HasForeignKey(d => d.PrsFkCodigoOperario)
+            entity.HasOne(d => d.FkCodigoOperarioNavigation).WithMany(p => p.PrestamoFkCodigoOperarioNavigations)
+                .HasForeignKey(d => d.FkCodigoOperario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Prestamos_Operario");
-
-            entity.HasOne(d => d.PrsFkIdHerramientaNavigation).WithMany(p => p.Prestamos)
-                .HasForeignKey(d => d.PrsFkIdHerramienta)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Prestamos_Herramienta");
+                .HasConstraintName("FK_Prestamos_Operarios");
         });
 
         modelBuilder.Entity<PrestamosDetalle>(entity =>
@@ -259,11 +244,6 @@ public partial class AlpContext : DbContext
             entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
             entity.Property(e => e.FkIdHerramienta).HasColumnName("fk_IdHerramienta");
             entity.Property(e => e.FkIdPrestamo).HasColumnName("fk_IdPrestamo");
-
-            entity.HasOne(d => d.FkIdHerramientaNavigation).WithMany(p => p.PrestamosDetalles)
-                .HasForeignKey(d => d.FkIdHerramienta)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PrestamosDetalle_Herramienta");
 
             entity.HasOne(d => d.FkIdPrestamoNavigation).WithMany(p => p.PrestamosDetalles)
                 .HasForeignKey(d => d.FkIdPrestamo)

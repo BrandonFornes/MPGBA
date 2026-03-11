@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
-namespace AdminHerramientas.Server.Models;
+namespace AdminHerramientas.Shared.Models;
 
 public partial class Nip
 {

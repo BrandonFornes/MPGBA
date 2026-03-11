@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AdminHerramientas.Server.Models;
+namespace AdminHerramientas.Shared.Models;
 
 public partial class PrestamosDetalle
 {
@@ -20,8 +20,6 @@ public partial class PrestamosDetalle
     public DateTime FechaModificacion { get; set; }
 
     public int UsuarioModifico { get; set; }
-
-    public virtual Herramienta FkIdHerramientaNavigation { get; set; } = null!;
 
     public virtual Prestamo FkIdPrestamoNavigation { get; set; } = null!;
 }
