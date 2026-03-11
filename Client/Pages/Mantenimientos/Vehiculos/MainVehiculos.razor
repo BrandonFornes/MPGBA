@@ -30,8 +30,8 @@
                         <MudForm @ref="formulario" Spacing="9">
 
                             <MudTextField T="string"
-                                        Label="Número de Serie"
-                                        Placeholder="Ingrese el No. de Serie"
+                                        Label="Bastidor"
+                                        Placeholder="Ingrese el Bastidor"
                                         @bind-Value="noSerie"
                                         Variant="Variant.Outlined"
                                         Required="true"
@@ -53,6 +53,15 @@
                                 }
                             </MudSelect>
 
+                            <MudTextField T="string"
+                                        Label="Color"
+                                        Placeholder="Ingrese el Color"
+                                        @bind-Value="color"
+                                        Variant="Variant.Outlined"
+                                        Required="true"
+                                        RequiredError="Campo Obligatorio"
+                                        Class="mb-4" />
+
                             <MudNumericField T="int"
                                             Label="Año"
                                             @bind-Value="anioVehiculo"
@@ -61,26 +70,19 @@
                                             Required="true"
                                             RequiredError="Campo Obligatorio"
                                             Class="mb-4" />
-
-                            <MudGrid Spacing="2">
-                                <MudItem xs="12" sm="6">
-                                    <MudDatePicker Label="Fecha de Llegada"
-                                                @bind-Date="fechaLlegada"
-                                                Variant="Variant.Outlined"
-                                                Required="true"
-                                                RequiredError="Campo Obligatorio"
-                                                Class="mb-4" />
-                                </MudItem>
-                                <MudItem xs="12" sm="6">
-                                    <MudDatePicker Label="Último Mantenimiento"
-                                                @bind-Date="fechaUltimoMantenimiento"
-                                                Variant="Variant.Outlined"
-                                                Class="mb-4" />
-                                </MudItem>
-                            </MudGrid>
+                            
+                            <MudNumericField T="int"
+                                            Label="Kilometraje"
+                                            @bind-Value="km"
+                                            Variant="Variant.Outlined"
+                                            Min="0"
+                                            Required="true"
+                                            RequiredError="Campo Obligatorio"
+                                            Class="mb-4" />
+                            
 
                             <MudSelect T="string"
-                                    Label="Concesionario"
+                                    Label="Familia"
                                     HelperText="Ubicación actual del vehículo"
                                     @bind-Value="concesionarioSeleccionado"
                                     Variant="Variant.Outlined"
@@ -88,9 +90,9 @@
                                     Required="true"
                                     RequiredError="Campo Obligatorio"
                                     Class="mb-4">
-                                @foreach (var agencia in listaConcesionarios)
+                                @foreach (var familia in listaFamilias)
                                 {
-                                    <MudSelectItem Value="@agencia">@agencia</MudSelectItem>
+                                    <MudSelectItem Value="@familia">@familia</MudSelectItem>
                                 }
                             </MudSelect>
 
@@ -131,11 +133,14 @@
     </ToolBarContent>
 
     <Columns>
-        <PropertyColumn Property="x => x.Id" Title="ID" />
-        <PropertyColumn Property="x => x.NoSerie" Title="No. Serie" />
+        <PropertyColumn Property="x => x.Idv" Title="ID" />
+        <PropertyColumn Property="x => x.Bastidor" Title="Bastidor" />
         <PropertyColumn Property="x => x.Marca" Title="Marca" />
         <PropertyColumn Property="x => x.Modelo" Title="Modelo" />
-        <PropertyColumn Property="x => x.Concesionario" Title="Concesionario" />
+        <PropertyColumn Property="x => x.Color" Title="Color" />
+        <PropertyColumn Property="x => x.Anio_Vehiculo" Title="Año" />
+        <PropertyColumn Property="x => x.Km" Title="Kilometros" />
+        <PropertyColumn Property="x => x.Familia" Title="Familia" />
     </Columns>
 
     <PagerContent>
@@ -163,35 +168,37 @@
 
     protected override void OnInitialized()
     {
-        AgregarVehiculo(101, "FRD-2024-X", "Ford", "Ranger Raptor", "FORD CIUDAD OBREGON");
-        AgregarVehiculo(102, "MZD-5544-Y", "Mazda", "CX-5", "MAZDA LOS MOCHIS");
-        AgregarVehiculo(103, "JEEP-WRG-4X4", "Jeep", "Wrangler Rubicon", "JEEP CIUDAD OBREGON");
-        AgregarVehiculo(101, "FRD-2024-X", "Ford", "Ranger Raptor", "FORD CIUDAD OBREGON");
-        AgregarVehiculo(102, "MZD-5544-Y", "Mazda", "CX-5", "MAZDA LOS MOCHIS");
-        AgregarVehiculo(103, "DFG-8888-Z", "Dongfeng", "Aeolus T5 Evo", "DONGFENG OBREGON");
-        AgregarVehiculo(104, "PEU-2008-GT", "Peugeot", "2008 GT", "PEUGEOT CIUDAD OBREGON");
-        AgregarVehiculo(105, "JEEP-WRG-4X4", "Jeep", "Wrangler Rubicon", "JEEP CIUDAD OBREGON");
-        AgregarVehiculo(106, "RAM-700-LRAM", "Ram", "700 Laramie", "RAM TRES RIOS");
-        AgregarVehiculo(107, "JET-X70-PLUS", "Jetour", "X70 Plus", "JETOUR MAZATLAN");
-        AgregarVehiculo(108, "LNC-NVG-BLK", "Lincoln", "Navigator", "LINCOLN CULIACAN");
-        AgregarVehiculo(109, "FIA-PLS-ABTH", "Fiat", "Pulse Abarth", "FIAT TRES RIOS");
-        AgregarVehiculo(110, "BST-B70-TURB", "Bestune", "B70", "BESTUNE OBREGON");
-        AgregarVehiculo(111, "JIM-REMAX-42", "JIM", "Re-Max S", "JIM HERMOSILLO");
-        AgregarVehiculo(112, "DGE-ATT-SXT", "Dodge", "Attitude", "DODGE CIUDAD OBREGON");
-        AgregarVehiculo(113, "VOL-XC60-HYB", "Volvo", "XC60 Recharge", "VOLVO CULIACAN");
+        AgregarVehiculo("24FA", "FRD982", "Ford", "F-150 Lightning", "Azul Antimateria", 0, "FORD", "2025");
+        AgregarVehiculo("24FB", "FRD115", "Ford", "Mustang Mach-E", "Rojo Rápido", 15, "FORD", "2024");
+
+        AgregarVehiculo("24LA", "LNC552", "Lincoln", "Navigator", "Negro Infinito", 5, "LINCOLN", "2025");
+        AgregarVehiculo("24LB", "LNC334", "Lincoln", "Aviator", "Plata Radiante", 0, "LINCOLN", "2025");
+
+        AgregarVehiculo("24DA", "DFG771", "Dongfeng", "T5 EVO", "Gris Galaxia", 10, "DONGFENG", "2024");
+        AgregarVehiculo("24DB", "DFG882", "Dongfeng", "Rich 6", "Blanco Nieve", 0, "DONGFENG", "2025");
+
+        AgregarVehiculo("24MA", "MZD441", "Mazda", "CX-5", "Rojo Soul Crystal", 12, "MAZDA", "2025");
+        AgregarVehiculo("24MB", "MZD992", "Mazda", "MX-5 Miata", "Gris Polimetal", 5, "MAZDA", "2024");
+
+        AgregarVehiculo("24JA", "JTR221", "Jetour", "Dashing", "Azul Eléctrico", 0, "JETOUR", "2025");
+        AgregarVehiculo("24JB", "JTR663", "Jetour", "X70 Plus", "Blanco Perla", 8, "JETOUR", "2024");
     }
 
-    private void AgregarVehiculo(int id, string serie, string marca,
-        string modelo, string concesionario)
+    private void AgregarVehiculo(string idv, string bastidor, string marca,
+        string modelo, string color, int km, string familia, string anio)
     {
         ListaVehiculos.Add(new VehiculoRow
         {
-            Id = id,
-            NoSerie = serie,
+            Idv = idv,
+            Bastidor = bastidor,
             Marca = marca,
             Modelo = modelo,
-            Concesionario = concesionario,
+            Color = color,
+            Km = km,
+            Familia = familia,
+            Anio_Vehiculo = anio
         });
+
     }
 
     private bool _quickFilter(VehiculoRow x)
@@ -199,7 +206,7 @@
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
 
-        if (x.NoSerie?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        if (x.Bastidor?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
 
         if (x.Marca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
@@ -208,7 +215,7 @@
         if (x.Modelo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
 
-        if (x.Concesionario?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        if (x.Familia?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
 
         return false;
@@ -221,6 +228,7 @@
 
     public class VehiculoRow
     {
+        /*
         public int Id { get; set; }
         public string NoSerie { get; set; }
         public string Marca { get; set; }
@@ -228,6 +236,21 @@
         public string Concesionario { get; set; }
         public DateTime UltimoServicio { get; set; }
         public int IntervaloDias { get; set; }
+        */
+
+        public string Idv { get; set;}
+        public string Bastidor { get; set;}
+        public string Marca { get; set;}
+        public string Modelo { get; set;}
+        public string Color { get; set;}
+        public int Km { get; set;}
+        public string Familia { get; set;}
+        public string Anio_Vehiculo { get; set;}
+
+        public DateTime UltimoServicio { get; set; }
+        public int IntervaloDias { get; set; }
+
+
 
         public DateTime ProximoServicio =>
             UltimoServicio.AddDays(IntervaloDias);
@@ -248,6 +271,12 @@
     string noSerie = "";
     string modeloSeleccionado;
     int anioVehiculo = 2024;
+
+    int km = 0;
+    string color = "";
+
+
+
     DateTime? fechaLlegada = DateTime.Today;
     DateTime? fechaUltimoMantenimiento = DateTime.Today;
     string concesionarioSeleccionado;
@@ -293,19 +322,13 @@
         "Ram 1500",
     };
 
-    List<string> listaConcesionarios = new List<string>
+    List<string> listaFamilias = new List<string>
     {
-        "FORD CIUDAD OBREGON", "FORD NAVOJOA", "FORD GUAYMAS",
-        "LINCOLN CULIACAN", "VOLVO CULIACAN",
-        "DONGFENG OBREGON", "DONGFENG HERMOSILLO",
-        "MAZDA CULIACAN", "MAZDA MAZATLAN",
-        "PEUGEOT CULIACAN", "PEUGEOT CIUDAD OBREGON",
-        "RAM HERMOSILLO",
-        "FIAT CIUDAD OBREGON", 
-        "DODGE CIUDAD OBREGON", 
-        "JEEP CIUDAD OBREGON",
-        "JIM OBREGON", "JIM CULIACAN",
-        "JETOUR OBREGON", "JETOUR MAZATLAN"
+        "FORD",
+        "MAZDA",
+        "DONGFENG",
+        "JETOUR",
+        "LINCOLN"
     };
 
 }
