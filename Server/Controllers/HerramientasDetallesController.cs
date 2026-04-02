@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AdminHerramientas.Server.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AdminHerramientas.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class HerramientasDetallesController : Controller
+    public class HerramientasDetallesController : ControllerBase
     {
         private readonly AlpContext _context;
         public HerramientasDetallesController(AlpContext context) {
@@ -18,79 +19,25 @@ namespace AdminHerramientas.Server.Controllers
         // GET: HerramientaController
 
         [HttpGet]
-        public IActionResult GetHerramientas()
+        public async Task<ActionResult<List<HerramientasDetalle>>> GetHerramientas()
         {
-            var herramientas = _context.HerramientasDetalles.ToList();
+            var herramientas = await _context.HerramientasDetalles.ToListAsync();
             return Ok(herramientas);
         }
-
-        // GET: HerramientaController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: HerramientaController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: HerramientaController/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> CrearHerramienta(HerramientasDetalle herramientaDetalle)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _context.HerramientasDetalles.Add(herramientaDetalle);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
-
-        // GET: HerramientaController/Edit/5
-        public ActionResult Edit(int id)
+        [HttpPut]
+        public async Task<IActionResult> EditarHerramienta(HerramientasDetalle herramientaDetalle)
         {
-            return View();
-        }
-
-        // POST: HerramientaController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: HerramientaController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: HerramientaController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _context.HerramientasDetalles.Update(herramientaDetalle);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
+
 }

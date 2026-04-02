@@ -1,6 +1,7 @@
 ﻿using AdminHerramientas.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using AdminHerramientas.Server.Models;
+using Microsoft.EntityFrameworkCore;
 namespace AdminHerramientas.Server.Controllers
 
 {
@@ -15,9 +16,9 @@ namespace AdminHerramientas.Server.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetHerramientas()
+        public async Task<ActionResult<List<Herramienta>>> GetHerramientas()
         {
-            var herramientas = _context.Herramientas.ToList();
+            var herramientas = await _context.Herramientas.ToListAsync();
             return Ok(herramientas);
         }
 

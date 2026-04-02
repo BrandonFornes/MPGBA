@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminHerramientas.Shared.Models;
 
@@ -8,7 +9,8 @@ public partial class HerramientasDetalle
     public int Id { get; set; }
 
     public int? FkIdHerramienta { get; set; }
-
+    [NotMapped]
+    public string? TipoNombre { get; set; }
     public string? Descripcion { get; set; }
 
     public DateTime? FechaCompra { get; set; }
