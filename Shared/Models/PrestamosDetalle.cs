@@ -21,5 +21,5 @@ public partial class PrestamosDetalle
 
     public int UsuarioModifico { get; set; }
 
-    public virtual Prestamo FkIdPrestamoNavigation { get; set; } = null!;
+    public virtual Prestamo? FkIdPrestamoNavigation { get; set; } = null!;
 }

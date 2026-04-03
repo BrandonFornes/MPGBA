@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AdminHerramientas.Server.Models;
 using Microsoft.EntityFrameworkCore;
+
 namespace AdminHerramientas.Server.Controllers
 
 {
@@ -18,7 +19,7 @@ namespace AdminHerramientas.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Herramienta>>> GetHerramientas()
         {
-            var herramientas = await _context.Herramientas.ToListAsync();
+            var herramientas = await _context.Herramientas.Where(h => h.Activo == true).ToListAsync();
             return Ok(herramientas);
         }
 
