@@ -23,9 +23,9 @@ public partial class Prestamo
 
     public bool? Activo { get; set; }
 
-    public virtual Operario FkCodigoEncargadoNavigation { get; set; } = null!;
+    public virtual Operario? FkCodigoEncargadoNavigation { get; set; } = null!;
 
-    public virtual Operario FkCodigoOperarioNavigation { get; set; } = null!;
+    public virtual Operario? FkCodigoOperarioNavigation { get; set; } = null!;
 
-    public virtual ICollection<PrestamosDetalle> PrestamosDetalles { get; } = new List<PrestamosDetalle>();
+    public virtual ICollection<PrestamosDetalle> PrestamosDetalles { get; set; } = new List<PrestamosDetalle>();
 }

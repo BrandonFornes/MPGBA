@@ -46,21 +46,33 @@
                 <div style="width: 1000px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
                         <MudForm @ref="formulario" Spacing="9">
-                            <MudSelect T="Herramienta" Label="Tipo de Herramienta" @bind-Value="_value">
+                            <MudSelect T="Herramienta" Label="Tipo de Herramienta" @bind-Value="_value" Required="true" RequiredError="Debes seleccionar al menos uno">
                                 @foreach (Herramienta herramienta in TiposHerramientas)
                                 {
                                     <MudSelectItem Value="@herramienta">@herramienta.Tipo</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudTextField @bind-Value="DescripcionHerramienta" Label="Descripcion de Herramienta" Variant="Variant.Text"></MudTextField>
+                            <MudTextField @bind-Value="DescripcionHerramienta" Label="Nombre/Descripcion de Herramienta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
 
-                            <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text"></MudTextField>
+                            <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
 
                              <MudDatePicker @bind-Date="FechaHerramienta"
                                            Label="Fecha de Compra (Opcional)"
                                            DateFormat="yyyy-MM-dd" /> 
+                            <MudSelect T="bool" Label="Disponible" @bind-Value="DisponibleHerramienta">
+                                <MudSelectItem Value="true">Si</MudSelectItem>
+                                <MudSelectItem Value="false">No</MudSelectItem>
+                            </MudSelect>
+                       
+                            <MudSelect T="string" Label="Estado de Herramienta" @bind-Value="EstadoHerramienta">
+                                <MudSelectItem Value="@("Operativa")">Operativa</MudSelectItem>
+                                <MudSelectItem Value="@("Perdida")">Perdida</MudSelectItem>
+                                <MudSelectItem Value="@("Dañada")">Dañada</MudSelectItem>
+                                <MudSelectItem Value="@("Mantenimiento")">Mantenimiento</MudSelectItem>
+                            </MudSelect>
+
                             <MudCardActions>
-                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarHerramienta">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarHerramienta">
                                     @(selectedItem == null ? "CREAR" : "EDITAR")
                                 </MudButton>
                             </MudCardActions>
@@ -138,7 +150,8 @@
                                    Color="Color.Warning"
                                    Size="Size.Small"
                                    OnClick="@(() => EditarHerramienta(context.Item))">
-                            Editar
+                            <MudIcon Icon="@Icons.Material.Filled.Edit"/>
+                            
                         </MudButton>
                     </CellTemplate>
                 </TemplateColumn>
@@ -171,17 +184,29 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarDatos();
+    }
+    private async Task CargarDatos()
+    {
+        DisponibleHerramienta = true;
+        EstadoHerramienta = "Operativa";
         var task1 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
         var task2 = Http.GetFromJsonAsync<List<Herramienta>>("api/herramienta");
+
+        await Task.WhenAll(task1, task2);
 
         Herramientas = await task1 ?? new();
         TiposHerramientas = await task2 ?? new();
 
+        var dicTipos = TiposHerramientas.ToDictionary(t => t.Id, t => t.Tipo);
+
         foreach (var h in Herramientas)
         {
-            h.TipoNombre = TiposHerramientas.FirstOrDefault(t => t.Id == h.FkIdHerramienta)?.Tipo;
+            if (dicTipos.TryGetValue(h.FkIdHerramienta ?? 0, out var nombreTipo))
+            {
+                h.TipoNombre = nombreTipo;
+            }
         }
-
     }
 
     protected async Task CrearTipoHerramienta()
@@ -190,7 +215,8 @@
         {
             Tipo = NombreHerramienta,
             FechaModificacion = DateTime.Today,
-            UsuarioModifico = 1
+            UsuarioModifico = 1,
+            Activo = true
         };
         var response = await Http.PostAsJsonAsync("api/herramienta", herramienta);
 
@@ -212,37 +238,45 @@
 
     protected async Task GuardarHerramienta()
     {
-        HerramientasDetalle herramientasDetalle = new HerramientasDetalle
+        await formulario.Validate();
+
+        if (formulario.IsValid)
         {
-            Id = selectedItem?.Id ?? 0,
-            FkIdHerramienta = TiposHerramientas.FirstOrDefault(x => x.Tipo == _value.Tipo)?.Id ?? 0,
-            Descripcion = DescripcionHerramienta,
-            FechaCompra = FechaHerramienta,
-            Disponible = true,
-            Estado = "Operativa",
-            Etiqueta = EtiquetaHerramienta,
-            FechaModificacion = DateTime.Today,
-            UsuarioModifico = 0,
-            Activo = true
-        };
-        HttpResponseMessage response;
-        if (selectedItem == null)
-        {
-            response = await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
-        }
-        else
-        {
-            response = await Http.PutAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
-        }
-        if (response.IsSuccessStatusCode)
-        {
-            Herramientas = await Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
-            DescripcionHerramienta = "";
-            EtiquetaHerramienta = "";
-            _value = null;
-            _abreCrearHerramienta = false;
-            FechaHerramienta = null;
-            selectedItem = null;
+
+
+            HerramientasDetalle herramientasDetalle = new HerramientasDetalle
+                {
+                    Id = selectedItem?.Id ?? 0,
+                    FkIdHerramienta = TiposHerramientas.FirstOrDefault(x => x.Tipo == _value.Tipo)?.Id ?? 0,
+                    Descripcion = DescripcionHerramienta,
+                    FechaCompra = FechaHerramienta,
+                    Disponible = DisponibleHerramienta,
+                    Estado = EstadoHerramienta,
+                    Etiqueta = EtiquetaHerramienta,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 0,
+                    Activo = true
+                };
+            HttpResponseMessage response;
+            if (selectedItem == null)
+            {
+                response = await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
+            }
+            else
+            {
+                response = await Http.PutAsJsonAsync($"api/herramientasdetalles/{herramientasDetalle.Id}", herramientasDetalle);
+            }
+            if (response.IsSuccessStatusCode)
+            {
+                await CargarDatos();
+                DescripcionHerramienta = "";
+                EtiquetaHerramienta = "";
+                EstadoHerramienta = "";
+                _value = null;
+                _abreCrearHerramienta = false;
+                FechaHerramienta = null;
+                selectedItem = null;
+            }
         }
     }
     private void EditarHerramienta(HerramientasDetalle herramienta)
@@ -254,6 +288,8 @@
         DescripcionHerramienta = herramienta.Descripcion;
         EtiquetaHerramienta = herramienta.Etiqueta;
         FechaHerramienta = herramienta.FechaCompra;
+        DisponibleHerramienta = herramienta.Disponible ?? true;
+        EstadoHerramienta = herramienta.Estado;
 
         _value = TiposHerramientas
             .FirstOrDefault(t => t.Id == herramienta.FkIdHerramienta);
@@ -269,11 +305,11 @@
 
         if (x.Etiqueta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
              return true;
+        
+        if (x.TipoNombre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
 
-        // if (x.FkIdHerramienta.?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-        //      return true;
-
-        return true;
+        return false;
     }
 
 
@@ -302,6 +338,8 @@
     public string EtiquetaHerramienta { get; set; }
     public string DescripcionHerramienta { get; set; }
     public DateTime? FechaHerramienta { get; set; }
+    public bool DisponibleHerramienta { get; set; }
+    public string EstadoHerramienta { get; set; }
     private Herramienta _value;
     private IEnumerable<string> _options = new HashSet<string> { };
     MudForm formulario;
