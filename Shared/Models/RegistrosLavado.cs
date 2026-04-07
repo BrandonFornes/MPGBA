@@ -1,25 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminHerramientas.Shared.Models;
 
+[Table("Registros_lavados")] // Forzamos el nombre exacto de la tabla
 public partial class RegistrosLavado
 {
-    public int RlvId { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-    public string RlvFkCodigoOperario { get; set; } = null!;
+    [Required]
+    [StringLength(10)]
+    [Column("fk_codigoOperario")]
+    public string FkCodigoOperario { get; set; } = null!;
 
-    public int RlvFkIdTarea { get; set; }
+    [Column("fk_IdTarea")]
+    public int FkIdTarea { get; set; }
 
-    public DateTime RlvFecha { get; set; }
+    public DateTime Fecha { get; set; }
 
-    public decimal RlvComisionRegistro { get; set; }
+    [Column("comisionRegistro")]
+    public decimal ComisionRegistro { get; set; }
 
-    public DateTime RlvFechaModificacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
 
-    public int RlvUsuarioModifico { get; set; }
+    public int UsuarioModifico { get; set; }
 
-    public virtual Operario RlvFkCodigoOperarioNavigation { get; set; } = null!;
+    public bool Activo { get; set; }
 
-    public virtual Tarea RlvFkIdTareaNavigation { get; set; } = null!;
+    // Propiedades de Navegación (Esto es lo que hace magia en EF)
+    [ForeignKey("FkCodigoOperario")]
+    public virtual Operario? OperarioNavigation { get; set; }
+
+    [ForeignKey("FkIdTarea")]
+    public virtual Tarea? TareaNavigation { get; set; }
 }

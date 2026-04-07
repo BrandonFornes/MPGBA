@@ -41,8 +41,11 @@ public partial class AlpContext : DbContext
     public virtual DbSet<Vehiculo> Vehiculos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=localhost;Database=ALP;Trusted_Connection=True;TrustServerCertificate=True");
+    {
+        //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+        //=> optionsBuilder.UseSqlServer("Server=localhost;Database=ALP;Trusted_Connection=True;TrustServerCertificate=True");
+
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -253,55 +256,79 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<RegistrosLavado>(entity =>
         {
-            entity.HasKey(e => e.RlvId).HasName("PK__Registro__65C8A5E6F05731B1");
+            entity.HasKey(e => e.Id);
 
             entity.ToTable("Registros_lavados");
 
-            entity.Property(e => e.RlvId).HasColumnName("rlv_Id");
-            entity.Property(e => e.RlvComisionRegistro)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("rlv_comisionRegistro");
-            entity.Property(e => e.RlvFecha)
-                .HasColumnType("datetime")
-                .HasColumnName("rlv_fecha");
-            entity.Property(e => e.RlvFechaModificacion)
-                .HasColumnType("datetime")
-                .HasColumnName("rlv_FechaModificacion");
-            entity.Property(e => e.RlvFkCodigoOperario)
+            entity.Property(e => e.Id).HasColumnName("Id");
+
+            entity.Property(e => e.FkCodigoOperario)
                 .HasMaxLength(10)
                 .IsUnicode(false)
-                .HasColumnName("rlv_fk_codigoOperario");
-            entity.Property(e => e.RlvFkIdTarea).HasColumnName("rlv_fk_IdTarea");
-            entity.Property(e => e.RlvUsuarioModifico).HasColumnName("rlv_UsuarioModifico");
+                .HasColumnName("fk_codigoOperario");
 
-            entity.HasOne(d => d.RlvFkCodigoOperarioNavigation).WithMany(p => p.RegistrosLavados)
-                .HasForeignKey(d => d.RlvFkCodigoOperario)
+            entity.Property(e => e.FkIdTarea).HasColumnName("fk_IdTarea");
+
+            entity.Property(e => e.Fecha)
+                .HasColumnType("datetime")
+                .HasColumnName("fecha");
+
+            entity.Property(e => e.ComisionRegistro)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("comisionRegistro");
+
+            entity.Property(e => e.FechaModificacion)
+                .HasColumnType("datetime")
+                .HasColumnName("FechaModificacion");
+
+            entity.Property(e => e.UsuarioModifico).HasColumnName("UsuarioModifico");
+
+            entity.Property(e => e.Activo)
+                .HasColumnName("Activo")
+                .HasDefaultValueSql("((1))");
+
+            // Relaciones (Asegúrate de que los nombres de las propiedades en el modelo coincidan)
+            entity.HasOne(d => d.OperarioNavigation).WithMany(p => p.RegistrosLavados)
+                .HasForeignKey(d => d.FkCodigoOperario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Lavados_Operarios");
 
-            entity.HasOne(d => d.RlvFkIdTareaNavigation).WithMany(p => p.RegistrosLavados)
-                .HasForeignKey(d => d.RlvFkIdTarea)
+            entity.HasOne(d => d.TareaNavigation).WithMany(p => p.RegistrosLavados)
+                .HasForeignKey(d => d.FkIdTarea)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Lavados_Tareas");
         });
 
         modelBuilder.Entity<Tarea>(entity =>
         {
-            entity.HasKey(e => e.TrsId).HasName("PK__Tareas__48C1EC9BDCFAC729");
+            // Ahora la llave es "Id" según tu captura
+            entity.HasKey(e => e.Id); 
 
-            entity.Property(e => e.TrsId).HasColumnName("trs_Id");
-            entity.Property(e => e.TrsComisionTarea)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("trs_comisionTarea");
-            entity.Property(e => e.TrsFechaModificacion)
-                .HasColumnType("datetime")
-                .HasColumnName("trs_FechaModificacion");
-            entity.Property(e => e.TrsNombreTarea)
+            entity.ToTable("Tareas");
+
+            entity.Property(e => e.Id).HasColumnName("Id");
+            
+            entity.Property(e => e.NombreTarea)
                 .HasMaxLength(100)
                 .IsUnicode(false)
-                .HasColumnName("trs_nombreTarea");
-            entity.Property(e => e.TrsUsuarioModifico).HasColumnName("trs_UsuarioModifico");
+                .HasColumnName("nombreTarea"); // Coincide con tu captura
+
+            entity.Property(e => e.ComisionTarea)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("comisionTarea");
+
+            entity.Property(e => e.FechaModificacion)
+                .HasColumnType("datetime")
+                .HasColumnName("FechaModificacion");
+
+            entity.Property(e => e.UsuarioModifico)
+                .HasColumnName("UsuarioModifico");
+
+            entity.Property(e => e.Activo)
+                .HasColumnName("Activo")
+                .HasDefaultValueSql("((1))");
         });
+
 
         modelBuilder.Entity<Vehiculo>(entity =>
         {
