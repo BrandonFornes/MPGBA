@@ -1,334 +1,146 @@
 ﻿@page "/mantenimientos/vehiculos"
 @using MudBlazor
+@using AdminHerramientas.Shared.Models
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-<MudGrid Class="mt-5" Justify="Justify.Center">
-<MudItem xs="10">
+<PageTitle>Gestión de Vehículos</PageTitle>
 
-        <MudText Typo="Typo.h3" Class="mb-4">
-            Vehículos
-        </MudText>
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+        <MudText Typo="Typo.h3" Class="mb-4">Vehículos</MudText>
 
         <MudPaper Class="pa-4 mb-4">
-            <MudButton Variant="Variant.Filled"
-                       Size="Size.Large"
-                       Color="Color.Tertiary"
-                       OnClick="@AbrirCrearVehiculo">
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" OnClick="@AbrirCrearVehiculo">
                 Registrar Vehículo
             </MudButton>
 
+            @* --- OVERLAY Y POPOVER --- *@
             <MudOverlay Visible="_abreCrearVehiculo" OnClick="@AbrirCrearVehiculo" DarkBackground="true" ZIndex="5" />
 
             <MudPopover Open="@_abreCrearVehiculo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                <MudText Typo="Typo.h5" Class="pa-4">Registrar Nuevo Vehículo</MudText>
                 
-                <MudText Typo="Typo.h5" Class="pa-4">
-                    Registrar Nuevo Vehículo
-                </MudText>
-                
-                <div style="width: 1000px; heigth: auto;" class="pa-5">
-                    <MudStack Spacing="4">
-                        <MudForm @ref="formulario" Spacing="9">
-
-                            <MudTextField T="string"
-                                        Label="Bastidor"
-                                        Placeholder="Ingrese el Bastidor"
-                                        @bind-Value="noSerie"
-                                        Variant="Variant.Outlined"
-                                        Required="true"
-                                        RequiredError="Campo Obligatorio"
-                                        Class="mb-4" />
-
-                            <MudSelect T="string"
-                                    Label="Modelo"
-                                    HelperText="Seleccione Marca y Modelo"
-                                    @bind-Value="modeloSeleccionado"
-                                    Variant="Variant.Outlined"
-                                    AnchorOrigin="Origin.BottomCenter"
-                                    Required="true"
-                                    RequiredError="Campo Obligatorio"
-                                    Class="mb-4">
-                                @foreach (var modelo in listaModelos)
-                                {
-                                    <MudSelectItem Value="@modelo">@modelo</MudSelectItem>
-                                }
-                            </MudSelect>
-
-                            <MudTextField T="string"
-                                        Label="Color"
-                                        Placeholder="Ingrese el Color"
-                                        @bind-Value="color"
-                                        Variant="Variant.Outlined"
-                                        Required="true"
-                                        RequiredError="Campo Obligatorio"
-                                        Class="mb-4" />
-
-                            <MudNumericField T="int"
-                                            Label="Año"
-                                            @bind-Value="anioVehiculo"
-                                            Variant="Variant.Outlined"
-                                            Min="1900" Max="2100"
-                                            Required="true"
-                                            RequiredError="Campo Obligatorio"
-                                            Class="mb-4" />
+                <div style="width: 800px; height: auto;" class="pa-5">
+                    <MudForm @ref="formulario">
+                        <MudGrid>
+                            <MudItem xs="6">
+                                <MudTextField T="string" Label="IDV" @bind-Value="nuevoVehiculo.Idv" Required="true" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudTextField T="string" Label="Bastidor (VIN)" @bind-Value="nuevoVehiculo.Bastidor" Required="true" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudTextField T="string" Label="Marca" @bind-Value="nuevoVehiculo.Marca" Required="true" Variant="Variant.Outlined" MaxLength="5" Class="mb-4" />
+                                <MudTextField T="string" Label="Descripción Marca" @bind-Value="nuevoVehiculo.DesMarca" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudTextField T="string" Label="Modelo" @bind-Value="nuevoVehiculo.Modelo" Variant="Variant.Outlined" Class="mb-4" />
+                            </MudItem>
                             
-                            <MudNumericField T="int"
-                                            Label="Kilometraje"
-                                            @bind-Value="km"
-                                            Variant="Variant.Outlined"
-                                            Min="0"
-                                            Required="true"
-                                            RequiredError="Campo Obligatorio"
-                                            Class="mb-4" />
-                            
+                            <MudItem xs="6">
+                                <MudTextField T="string" Label="Descripción Modelo" @bind-Value="nuevoVehiculo.DesModelo" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudTextField T="string" Label="Año" @bind-Value="nuevoVehiculo.AnioVehi" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudNumericField T="decimal?" Label="Kilometraje" @bind-Value="nuevoVehiculo.Km" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudSelect T="string" Label="Familia" @bind-Value="nuevoVehiculo.Familia" Variant="Variant.Outlined" Class="mb-4">
+                                    @foreach (var f in listaFamilias) { <MudSelectItem Value="@f">@f</MudSelectItem> }
+                                </MudSelect>
+                                <MudDatePicker Label="Fecha Fin" @bind-Date="fechaFinSeleccionada" Required="true" Variant="Variant.Outlined" />
+                            </MudItem>
+                        </MudGrid>
 
-                            <MudSelect T="string"
-                                    Label="Familia"
-                                    HelperText="Ubicación actual del vehículo"
-                                    @bind-Value="concesionarioSeleccionado"
-                                    Variant="Variant.Outlined"
-                                    AnchorOrigin="Origin.BottomCenter"
-                                    Required="true"
-                                    RequiredError="Campo Obligatorio"
-                                    Class="mb-4">
-                                @foreach (var familia in listaFamilias)
-                                {
-                                    <MudSelectItem Value="@familia">@familia</MudSelectItem>
-                                }
-                            </MudSelect>
-
-                            <MudCardActions>
-                                <MudButton Variant="Variant.Filled"
-                                        Color="Color.Primary"
-                                        Class="ml-auto"
-                                        StartIcon="@Icons.Material.Filled.Save"
-                                        OnClick="@AbrirCrearVehiculo">
-                                    Registrar Vehículo
-                                </MudButton>
-                            </MudCardActions>
-
-
-                        </MudForm>
-                    </MudStack>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarVehiculo">
+                                Guardar Vehículo
+                            </MudButton>
+                        </MudCardActions>
+                    </MudForm>
                 </div>
             </MudPopover>
-
         </MudPaper>
 
-<MudDataGrid T="VehiculoRow"
-             Items="@ListaVehiculos"
-             Filterable="true"
-             Sortable="true"
-             QuickFilter="@_quickFilter">
-
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Listado de Vehículos</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString"
-                      Placeholder="Buscar por serie, marca o modelo..."
-                      Adornment="Adornment.Start"
-                      Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      IconSize="Size.Medium"
-                      Class="mt-0" />
-    </ToolBarContent>
-
-    <Columns>
-        <PropertyColumn Property="x => x.Idv" Title="ID" />
-        <PropertyColumn Property="x => x.Bastidor" Title="Bastidor" />
-        <PropertyColumn Property="x => x.Marca" Title="Marca" />
-        <PropertyColumn Property="x => x.Modelo" Title="Modelo" />
-        <PropertyColumn Property="x => x.Color" Title="Color" />
-        <PropertyColumn Property="x => x.Anio_Vehiculo" Title="Año" />
-        <PropertyColumn Property="x => x.Km" Title="Kilometros" />
-        <PropertyColumn Property="x => x.Familia" Title="Familia" />
-    </Columns>
-
-    <PagerContent>
-        <MudDataGridPager T="VehiculoRow" />
-    </PagerContent>
-
-</MudDataGrid>
-
-<MudCardActions>
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Secondary"
-               Class="ml-auto"
-               DisableElevation="true">
-        Eliminar Vehiculo
-    </MudButton>
-</MudCardActions>
-
-</MudItem>
+        <MudDataGrid T="Vehiculo" Items="@ListaVehiculos" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Listado Real de Vehículos</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Idv" Title="IDV" />
+                <PropertyColumn Property="x => x.Bastidor" Title="Bastidor" />
+                <PropertyColumn Property="x => x.DesMarca" Title="Marca" />
+                <PropertyColumn Property="x => x.DesModelo" Title="Modelo" />
+                <PropertyColumn Property="x => x.AnioVehi" Title="Año" />
+                <PropertyColumn Property="x => x.Km" Title="Kms" Format="N0" />
+                <PropertyColumn Property="x => x.Fechafin" Title="Fecha Fin" Format="dd/MM/yyyy" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="Vehiculo" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudItem>
 </MudGrid>
 
 @code {
-
     private string _searchString;
-    private List<VehiculoRow> ListaVehiculos = new();
-
-    protected override void OnInitialized()
-    {
-        AgregarVehiculo("24FA", "FRD982", "Ford", "F-150 Lightning", "Azul Antimateria", 0, "FORD", "2025");
-        AgregarVehiculo("24FB", "FRD115", "Ford", "Mustang Mach-E", "Rojo Rápido", 15, "FORD", "2024");
-
-        AgregarVehiculo("24LA", "LNC552", "Lincoln", "Navigator", "Negro Infinito", 5, "LINCOLN", "2025");
-        AgregarVehiculo("24LB", "LNC334", "Lincoln", "Aviator", "Plata Radiante", 0, "LINCOLN", "2025");
-
-        AgregarVehiculo("24DA", "DFG771", "Dongfeng", "T5 EVO", "Gris Galaxia", 10, "DONGFENG", "2024");
-        AgregarVehiculo("24DB", "DFG882", "Dongfeng", "Rich 6", "Blanco Nieve", 0, "DONGFENG", "2025");
-
-        AgregarVehiculo("24MA", "MZD441", "Mazda", "CX-5", "Rojo Soul Crystal", 12, "MAZDA", "2025");
-        AgregarVehiculo("24MB", "MZD992", "Mazda", "MX-5 Miata", "Gris Polimetal", 5, "MAZDA", "2024");
-
-        AgregarVehiculo("24JA", "JTR221", "Jetour", "Dashing", "Azul Eléctrico", 0, "JETOUR", "2025");
-        AgregarVehiculo("24JB", "JTR663", "Jetour", "X70 Plus", "Blanco Perla", 8, "JETOUR", "2024");
-    }
-
-    private void AgregarVehiculo(string idv, string bastidor, string marca,
-        string modelo, string color, int km, string familia, string anio)
-    {
-        ListaVehiculos.Add(new VehiculoRow
-        {
-            Idv = idv,
-            Bastidor = bastidor,
-            Marca = marca,
-            Modelo = modelo,
-            Color = color,
-            Km = km,
-            Familia = familia,
-            Anio_Vehiculo = anio
-        });
-
-    }
-
-    private bool _quickFilter(VehiculoRow x)
-    {
-        if (string.IsNullOrWhiteSpace(_searchString))
-            return true;
-
-        if (x.Bastidor?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Marca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Modelo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Familia?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        return false;
-    }
-
-    private void NavegarARegistrarVehiculo()
-    {
-        NavigationManager.NavigateTo("/mantenimientos/vehiculos/registrar_vehiculo");
-    }
-
-    public class VehiculoRow
-    {
-        /*
-        public int Id { get; set; }
-        public string NoSerie { get; set; }
-        public string Marca { get; set; }
-        public string Modelo { get; set; }
-        public string Concesionario { get; set; }
-        public DateTime UltimoServicio { get; set; }
-        public int IntervaloDias { get; set; }
-        */
-
-        public string Idv { get; set;}
-        public string Bastidor { get; set;}
-        public string Marca { get; set;}
-        public string Modelo { get; set;}
-        public string Color { get; set;}
-        public int Km { get; set;}
-        public string Familia { get; set;}
-        public string Anio_Vehiculo { get; set;}
-
-        public DateTime UltimoServicio { get; set; }
-        public int IntervaloDias { get; set; }
-
-
-
-        public DateTime ProximoServicio =>
-            UltimoServicio.AddDays(IntervaloDias);
-    }
-
+    private List<Vehiculo> ListaVehiculos = new();
+    private Vehiculo nuevoVehiculo = new();
+    private MudForm formulario;
+    private DateTime? fechaFinSeleccionada = DateTime.Today.AddYears(1);
     public bool _abreCrearVehiculo;
 
-    public void AbrirCrearVehiculo()
+    protected override async Task OnInitializedAsync()
     {
-        if (_abreCrearVehiculo)
-            _abreCrearVehiculo = false;
-        else
-            _abreCrearVehiculo = true;
+        await CargarVehiculos();
     }
 
-        MudForm formulario;
-
-    string noSerie = "";
-    string modeloSeleccionado;
-    int anioVehiculo = 2024;
-
-    int km = 0;
-    string color = "";
-
-
-
-    DateTime? fechaLlegada = DateTime.Today;
-    DateTime? fechaUltimoMantenimiento = DateTime.Today;
-    string concesionarioSeleccionado;
-    bool mostrarExito = false;
-    string serieGuardada = "";
-    string modeloGuardado = "";
-    string concesionarioGuardado = "";
-
-    void GuardarVehiculo()
+    private async Task CargarVehiculos()
     {
-        formulario.Validate();
-
-        if (formulario.IsValid)
-        {
-            serieGuardada = noSerie;
-            modeloGuardado = modeloSeleccionado;
-            concesionarioGuardado = concesionarioSeleccionado;
-            mostrarExito = true;
-
-            noSerie = "";
-            modeloSeleccionado = null;
-            concesionarioSeleccionado = null;
-            anioVehiculo = 2024;
-            fechaLlegada = DateTime.Today;
-            fechaUltimoMantenimiento = DateTime.Today;
-            formulario.ResetValidation();
+        try {
+            ListaVehiculos = await Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos") ?? new();
+        } catch (Exception ex) {
+            Snackbar.Add("Error al cargar vehículos: " + ex.Message, Severity.Error);
         }
     }
 
-
-    List<string> listaModelos = new List<string>
+    private async Task GuardarVehiculo()
     {
-        "Ford Mustang",
-        "Lincoln Navigator",
-        "Mazda Mazda 3",
-        "Dongfeng T5 Evo",
-        "Jetour Dashing",
-        "Soueast DX3",
-        "Dodge Challenger",
-        "Fiat 500",
-        "Jeep Wrangler", "Jeep Grand Cherokee", "Jeep Renegade",
-        "Peugeot 208",
-        "Ram 1500",
-    };
+        await formulario.Validate();
+        if (formulario.IsValid)
+        {
+            nuevoVehiculo.Fechafin = fechaFinSeleccionada ?? DateTime.Now;
+            
+            var response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Vehículo registrado exitosamente", Severity.Success);
+                await CargarVehiculos();
+                _abreCrearVehiculo = false;
+                LimpiarFormulario();
+            }
+            else
+            {
+                Snackbar.Add("Error al guardar. Revisa que el IDV o Bastidor no estén duplicados.", Severity.Error);
+            }
+        }
+    }
 
-    List<string> listaFamilias = new List<string>
+    private void LimpiarFormulario()
     {
-        "FORD",
-        "MAZDA",
-        "DONGFENG",
-        "JETOUR",
-        "LINCOLN"
-    };
+        nuevoVehiculo = new Vehiculo();
+        fechaFinSeleccionada = DateTime.Today.AddYears(1);
+        formulario.ResetValidation();
+    }
 
+    public void AbrirCrearVehiculo()
+    {
+        if (_abreCrearVehiculo) LimpiarFormulario();
+        _abreCrearVehiculo = !_abreCrearVehiculo;
+    }
+
+    private bool _quickFilter(Vehiculo x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        return x.Bastidor.Contains(_searchString, StringComparison.OrdinalIgnoreCase) || 
+               x.DesMarca.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+               x.Idv.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    List<string> listaFamilias = new() { "FORD", "MAZDA", "DONGFENG", "JETOUR", "LINCOLN" };
 }

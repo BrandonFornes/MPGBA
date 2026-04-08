@@ -1,21 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AdminHerramientas.Shared.Models;
-
-public partial class HistorialMantenimiento
+namespace AdminHerramientas.Shared.Models
 {
-    public int HmnId { get; set; }
+    [Table("historial_mantenimientos")]
+    public class HistorialMantenimiento
+    {
+        [Key]
+        public int Id { get; set; }
+        
+        [Column("fk_bastidor")]
+        public string? FkBastidor { get; set; }
+        public DateTime fechaMantenimiento { get; set; }
+        public int IdConcesionario { get; set; }
+        public DateTime FechaModificacion { get; set; }
+        public int UsuarioModifico { get; set; }
+        public bool Activo { get; set; }
 
-    public int HmnFkIdVehiculo { get; set; }
+        [ForeignKey("FkBastidor")]
+        public virtual Vehiculo? Vehiculo { get; set; }
 
-    public DateTime HmnFechaMantenimiento { get; set; }
-
-    public int HmnFkIdConcesionario { get; set; }
-
-    public DateTime HmnFechaModificacion { get; set; }
-
-    public int HmnUsuarioModifico { get; set; }
-
-    public virtual Concesionario HmnFkIdConcesionarioNavigation { get; set; } = null!;
+        [ForeignKey("IdConcesionario")]
+        public virtual Concesionario? Concesionario { get; set; }
+    }
 }
