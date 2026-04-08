@@ -30,10 +30,16 @@ public partial class RegistrosLavado
 
     public bool Activo { get; set; }
 
+    [Column("fk_bastidor")]
+    public string? FkBastidor { get; set; }
+
     // Propiedades de Navegación (Esto es lo que hace magia en EF)
     [ForeignKey("FkCodigoOperario")]
     public virtual Operario? OperarioNavigation { get; set; }
 
     [ForeignKey("FkIdTarea")]
     public virtual Tarea? TareaNavigation { get; set; }
+
+    [ForeignKey("FkBastidor")]
+    public virtual Vehiculo? VehiculoNavigation { get; set; }
 }
