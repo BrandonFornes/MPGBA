@@ -52,20 +52,17 @@ public partial class AlpContext : DbContext
         modelBuilder.Entity<Concesionario>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__concesio__3214EC07B3684BDA");
-
-            entity.ToTable("concesionarios");
+            //entity.ToTable("CONCESIONARIOS");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
+            entity.Property(e => e.Nombre).HasMaxLength(155).IsUnicode(false);
+            entity.Property(e => e.Localidad).HasMaxLength(55).IsUnicode(false);
             entity.Property(e => e.FkIdEmpresa).HasColumnName("fk_IdEmpresa");
-            entity.Property(e => e.Localidad)
-                .HasMaxLength(55)
-                .IsUnicode(false);
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(155)
-                .IsUnicode(false);
+            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
 
-            entity.HasOne(d => d.FkIdEmpresaNavigation).WithMany(p => p.Concesionarios)
+            // Relación con Empresa
+            entity.HasOne(d => d.Empresa)
+                .WithMany(p => p.Concesionarios)
                 .HasForeignKey(d => d.FkIdEmpresa)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Concesionarios_Empresas");
@@ -74,19 +71,13 @@ public partial class AlpContext : DbContext
         modelBuilder.Entity<Empresa>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Empresas__3214EC07727B5B99");
+            //entity.ToTable("EMPRESAS");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.FechaModificacion)
-                .HasColumnType("datetime")
-                .HasColumnName("fechaModificacion");
-            entity.Property(e => e.RazonSocial)
-                .HasMaxLength(155)
-                .IsUnicode(false);
-            entity.Property(e => e.Rfc)
-                .HasMaxLength(13)
-                .IsUnicode(false)
-                .HasColumnName("RFC");
-            entity.Property(e => e.UsuarioModifico).HasColumnName("usuarioModifico");
+            entity.Property(e => e.RazonSocial).HasMaxLength(155).IsUnicode(false);
+            entity.Property(e => e.RFC).HasMaxLength(13).IsUnicode(false).HasColumnName("RFC");
+            entity.Property(e => e.fechaModificacion).HasColumnType("datetime").HasColumnName("fechaModificacion");
+            entity.Property(e => e.usuarioModifico).HasColumnName("usuarioModifico");
         });
 
         modelBuilder.Entity<Herramienta>(entity =>
@@ -126,25 +117,26 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<HistorialMantenimiento>(entity =>
         {
-            entity.HasKey(e => e.HmnId).HasName("PK__historia__B215155C556324F4");
+            entity.HasKey(e => e.Id);
+            //entity.ToTable("historial_mantenimientos");
 
-            entity.ToTable("historial_mantenimientos");
+            entity.Property(e => e.fechaMantenimiento).HasColumnType("datetime");
+            entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
+            entity.Property(e => e.FkBastidor).HasMaxLength(30).IsUnicode(false).HasColumnName("fk_bastidor");
 
-            entity.Property(e => e.HmnId).HasColumnName("hmn_Id");
-            entity.Property(e => e.HmnFechaMantenimiento)
-                .HasColumnType("datetime")
-                .HasColumnName("hmn_fechaMantenimiento");
-            entity.Property(e => e.HmnFechaModificacion)
-                .HasColumnType("datetime")
-                .HasColumnName("hmn_FechaModificacion");
-            entity.Property(e => e.HmnFkIdConcesionario).HasColumnName("hmn_fk_IdConcesionario");
-            entity.Property(e => e.HmnFkIdVehiculo).HasColumnName("hmn_fk_IdVehiculo");
-            entity.Property(e => e.HmnUsuarioModifico).HasColumnName("hmn_UsuarioModifico");
-
-            entity.HasOne(d => d.HmnFkIdConcesionarioNavigation).WithMany(p => p.HistorialMantenimientos)
-                .HasForeignKey(d => d.HmnFkIdConcesionario)
+            // Relación con Concesionario
+            entity.HasOne(d => d.Concesionario)
+                .WithMany()
+                .HasForeignKey(d => d.IdConcesionario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Historial_Concesionarios");
+
+            // RELACIÓN CLAVE: Historial -> Vehículo usando BASTIDOR
+            entity.HasOne(d => d.Vehiculo)
+                .WithMany() 
+                .HasPrincipalKey(p => p.Bastidor) // El Bastidor es la "llave" en la tabla Vehiculos
+                .HasForeignKey(d => d.FkBastidor)
+                .HasConstraintName("FK_Historial_Vehiculo_Bastidor");
         });
 
         modelBuilder.Entity<Nip>(entity =>

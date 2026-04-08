@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AdminHerramientas.Shared.Models;
-
-public partial class Empresa
+namespace AdminHerramientas.Shared.Models
 {
-    public int Id { get; set; }
-
-    public string RazonSocial { get; set; } = null!;
-
-    public string Rfc { get; set; } = null!;
-
-    public bool EsAgencia { get; set; }
-
-    public bool Activo { get; set; }
-
-    public DateTime FechaModificacion { get; set; }
-
-    public int UsuarioModifico { get; set; }
-
-    public virtual ICollection<Concesionario> Concesionarios { get; } = new List<Concesionario>();
+    [Table("Empresas")]
+    public class Empresa
+    {
+        [Key]
+        public int Id { get; set; }
+        public string RazonSocial { get; set; } = null!;
+        public string RFC { get; set; } = null!;
+        public bool EsAgencia { get; set; }
+        public bool Activo { get; set; }
+        public DateTime fechaModificacion { get; set; }
+        public int usuarioModifico { get; set; }
+        
+        // Relación: Una empresa tiene muchos concesionarios
+        public virtual ICollection<Concesionario> Concesionarios { get; set; } = new List<Concesionario>();
+    }
 }

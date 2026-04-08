@@ -1,232 +1,239 @@
 ﻿@page "/mantenimientos/mantenimiento"
 @using System.Globalization
+@using AdminHerramientas.Shared.Models
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
-@inject NavigationManager NavigationManager
+<PageTitle>Historial de Mantenimientos</PageTitle>
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
-<MudItem xs="10">
-
+    <MudItem xs="10">
         <MudText Typo="Typo.h3" Class="mb-4">Mantenimientos</MudText>
-
 
         <MudPaper Class="pa-4 mb-4">
             <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3"
-                       OnClick="@AbrirCrearMantenimiento">Registrar Mantenimiento</MudButton>
+                       OnClick="@AbrirCrearMantenimiento">
+                Registrar Mantenimiento
+            </MudButton>
 
+            @* --- OVERLAY PARA CERRAR AL DAR CLIC AFUERA --- *@
             <MudOverlay Visible="_abreCrearMantenimiento" OnClick="@AbrirCrearMantenimiento" DarkBackground="true" ZIndex="5" />
+            <MudOverlay Visible="_verHistorialDetalle" OnClick="@(() => _verHistorialDetalle = false)" DarkBackground="true" ZIndex="5" />
 
+            @* --- POPOVER: REGISTRAR --- *@
             <MudPopover Open="@_abreCrearMantenimiento" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
-                
-                @* Usamos un div o Paper con un ancho definido (ej. 350px) *@
-                <MudText Typo="Typo.h5" Class="pa-4">
-                    Registrar Mantenimiento
-                </MudText>
-                
-                <div style="width: 1000px; heigth: auto;" class="pa-5">
-                    <MudStack Spacing="4">
-                        <MudForm @ref="formulario" Spacing="9">
-                            <MudSelect T="string"
-                                    Label="Selecciona Vehículo"
-                                    @bind-Value="vehiculoSeleccionado"
-                                    Variant="Variant.Outlined"
-                                    Required="true"
-                                    RequiredError="Campo Obligatorio"
-                                    Searchable="true"
-                                    AnchorOrigin="Origin.BottomCenter"
-                                    Class="mb-4">
-
-                                @foreach (var vehiculo in _vehiculos)
-                                {
-                                    <MudSelectItem Value="@vehiculo">
-                                        @vehiculo
-                                    </MudSelectItem>
-                                }
-
-                            </MudSelect>
-
-                            <MudCardActions>
-                                <MudButton Variant="Variant.Filled"
-                                        Color="Color.Primary"
-                                        Class="ml-auto"
-                                        StartIcon="@Icons.Material.Filled.Save"
-                                        OnClick="@AbrirCrearMantenimiento">
-                                    Registrar Mantenimiento
-                                </MudButton>
-                            </MudCardActions>
-
-
-                        </MudForm>
-                    </MudStack>
+                <MudText Typo="Typo.h5" Class="pa-4">@(selectedItem == null ? "Registrar" : "Editar")</MudText>
+                <div style="width: 700px;" class="pa-5">
+                    <MudForm @ref="formulario">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudSelect T="Vehiculo" Label="Vehículo" @bind-Value="vehiculoSeleccionado" Variant="Variant.Outlined" Required="true" Searchable="true">
+                                    @foreach (var v in listaVehiculos)
+                                    {
+                                        <MudSelectItem Value="@v">@v.Bastidor - @v.DesMarca @v.DesModelo</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudSelect T="Concesionario" Label="Agencia" @bind-Value="concesionarioSeleccionado" Variant="Variant.Outlined" Required="true">
+                                    @foreach (var c in listaConcesionarios)
+                                    {
+                                        <MudSelectItem Value="@c">@c.Nombre</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudDatePicker Label="Fecha" @bind-Date="fechaSeleccionada" Variant="Variant.Outlined" Required="true" />
+                            </MudItem>
+                        </MudGrid>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarMantenimiento">Guardar</MudButton>
+                        </MudCardActions>
+                    </MudForm>
                 </div>
             </MudPopover>
 
-            
+            @* --- POPOVER: HISTORIAL DETALLADO --- *@
+            <MudPopover Open="@_verHistorialDetalle" 
+                        AnchorOrigin="Origin.BottomCenter" 
+                        TransformOrigin="Origin.TopCenter" 
+                        Fixed="true" 
+                        Style="width:800px; max-height: 400px; overflow-y: auto; overflow-x: hidden;">
+                
+                <MudPaper Elevation="0" Class="pa-4">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Info" />
+                        <MudText Typo="Typo.h5">Historial: @bastidorSeleccionadoDetalle</MudText>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                    Color="Color.Error" 
+                                    OnClick="@(() => _verHistorialDetalle = false)" />
+                    </MudStack>
 
+                    <MudDivider Class="mb-4" />
+
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <MudTable Items="@historialFiltrado" Dense="true" Hover="true" Elevation="0">
+                            <HeaderContent>
+                                <MudTh>Fecha</MudTh>
+                                <MudTh>Agencia / Concesionario</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.fechaMantenimiento.ToString("dd/MM/yyyy")</MudTd>
+                                <MudTd>@ObtenerNombreConcesionario(context.IdConcesionario)</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </div>
+                    
+                    
+                </MudPaper>
+            </MudPopover>
         </MudPaper>
 
-<MudDataGrid T="MantenimientoFila" Items="@listaMantenimientos" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
-    
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Historial de servicios</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString" Placeholder="Buscar por serie, modelo..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
+        @* --- EL CAMBIO CLAVE: Items="@listaUltimosMantenimientos" --- *@
+        <MudDataGrid T="HistorialMantenimiento" Items="@listaUltimosMantenimientos" Filterable="true" Sortable="true">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Panel de Control</MudText>
+                <MudSpacer />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="Folio" />
+                <TemplateColumn Title="Vehículo">
+                    <CellTemplate>@ObtenerInfoVehiculo(context.Item.FkBastidor)</CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.fechaMantenimiento" Title="Último Servicio" Format="dd/MM/yyyy" />
+                
+                <TemplateColumn Title="Estado">
+                    <CellTemplate>
+                        @{
+                            // Calculamos la fecha límite según el intervalo
+                            var fechaSiguiente = context.Item.fechaMantenimiento.AddDays(intervaloPredeterminado);
+                            var hoy = DateTime.Now;
+                            var limiteProximo = hoy.AddDays(15); // Margen de 15 días para la alerta amarilla
 
+                            if (fechaSiguiente < hoy)
+                            {
+                                <MudChip Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" Icon="@Icons.Material.Filled.Error">
+                                    VENCIDO
+                                </MudChip>
+                            }
+                            else if (fechaSiguiente <= limiteProximo)
+                            {
+                                <MudChip Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small" Icon="@Icons.Material.Filled.AccessTime">
+                                    PRÓXIMO
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudChip Color="Color.Success" Variant="Variant.Filled" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">
+                                    EN TIEMPO
+                                </MudChip>
+                            }
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
 
-
-    <Columns>
-        <PropertyColumn Property="x => x.IdMantenimiento" Title="ID" Sortable="true" Filterable="false"></PropertyColumn>
-        <PropertyColumn Property="x => x.NoSerie" Title="No. Serie" />
-
-        <PropertyColumn Property="x => x.Marca" Title="Marca" />
-        <PropertyColumn Property="x => x.Modelo" Title="Modelo" />
-
-        <PropertyColumn Property="x => x.Concesionario" Title="Concesionario" />
-
-        <PropertyColumn Property="x => x.UltimoMantenimiento" Title="Último Servicio" Format="dd/MM/yyyy" />
-
-        <PropertyColumn Property="x => x.ProximoMantenimiento" Title="Próximo Servicio" Format="dd/MM/yyyy" />
-
-        <TemplateColumn Title="Estado">
-            <CellTemplate>
-                @if (context.Item.ProximoMantenimiento < DateTime.Now)
-                {
-                    <MudChip Color="Color.Error" Size="Size.Small">Vencido</MudChip>
-                }
-                else
-                {
-                    <MudChip Color="Color.Success" Size="Size.Small">En tiempo</MudChip>
-                }
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-
-    <PagerContent>
-        <MudDataGridPager T="MantenimientoFila" />
-    </PagerContent>
-</MudDataGrid>
-</MudItem>
+                <TemplateColumn Title="Acciones">
+                    <CellTemplate>
+                        <MudStack Row="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => EditarRegistro(context.Item))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.History" Color="Color.Info" Size="Size.Small" OnClick="@(() => VerHistorialCompleto(context.Item.FkBastidor))" />
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="HistorialMantenimiento" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudItem>
 </MudGrid>
 
 @code {
-    private string _searchString;
-    private List<MantenimientoFila> listaMantenimientos = new List<MantenimientoFila>();
+    private string _searchString = "";
+    private List<HistorialMantenimiento> listaHistorial = new();
+    private List<Vehiculo> listaVehiculos = new();
+    private List<Concesionario> listaConcesionarios = new();
 
-    public class MantenimientoFila
-    {
-        public int IdMantenimiento { get; set; }
-        public string NoSerie { get; set; }
-        public string Marca { get; set; }
-        public string Modelo { get; set; }
-        public string Concesionario { get; set; }
-        public DateTime UltimoMantenimiento { get; set; }
-        public int IntervaloDias { get; set; }
+    // Lógica para quitar repetidos: Solo el más nuevo por bastidor
+    private List<HistorialMantenimiento> listaUltimosMantenimientos => listaHistorial
+        .GroupBy(x => x.FkBastidor)
+        .Select(g => g.OrderByDescending(m => m.fechaMantenimiento).First())
+        .ToList();
 
-        public DateTime ProximoMantenimiento => UltimoMantenimiento.AddDays(IntervaloDias);
+    private HistorialMantenimiento? selectedItem;
+    private Vehiculo vehiculoSeleccionado;
+    private Concesionario concesionarioSeleccionado;
+    private DateTime? fechaSeleccionada = DateTime.Today;
+    private int intervaloPredeterminado = 30;
+
+    private bool _abreCrearMantenimiento;
+    private bool _verHistorialDetalle;
+    private string bastidorSeleccionadoDetalle = "";
+    private List<HistorialMantenimiento> historialFiltrado = new();
+
+    protected override async Task OnInitializedAsync() => await CargarDatos();
+
+    private async Task CargarDatos() {
+        var t1 = Http.GetFromJsonAsync<List<HistorialMantenimiento>>("api/historialmantenimientos");
+        var t2 = Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos");
+        var t3 = Http.GetFromJsonAsync<List<Concesionario>>("api/concesionarios");
+        await Task.WhenAll(t1, t2, t3);
+        listaHistorial = await t1 ?? new();
+        listaVehiculos = await t2 ?? new();
+        listaConcesionarios = await t3 ?? new();
     }
 
-
-
-    protected override void OnInitialized()
-    {
-        AgregarMantenimiento(101, "FRD-2024-X", "Ford", "Ranger Raptor", "FORD CIUDAD OBREGON", 190, 180);
-        AgregarMantenimiento(102, "MZD-5544-Y", "Mazda", "CX-5", "MAZDA LOS MOCHIS", 30, 180);
-        AgregarMantenimiento(103, "DFG-8888-Z", "Dongfeng", "Aeolus T5 Evo", "DONGFENG OBREGON", 100, 180);
-        AgregarMantenimiento(104, "PEU-2008-GT", "Peugeot", "2008 GT", "PEUGEOT CIUDAD OBREGON", 370, 365);
-        AgregarMantenimiento(105, "JEEP-WRG-4X4", "Jeep", "Wrangler Rubicon", "JEEP CIUDAD OBREGON", 10, 180);
-        AgregarMantenimiento(106, "RAM-700-LRAM", "Ram", "700 Laramie", "RAM TRES RIOS", 200, 90);
-        AgregarMantenimiento(107, "JET-X70-PLUS", "Jetour", "X70 Plus", "JETOUR MAZATLAN", 60, 180);
-        AgregarMantenimiento(108, "LNC-NVG-BLK", "Lincoln", "Navigator", "LINCOLN CULIACAN", 175, 180);
-        AgregarMantenimiento(109, "FIA-PLS-ABTH", "Fiat", "Pulse Abarth", "FIAT TRES RIOS", 95, 180);
-        AgregarMantenimiento(110, "BST-B70-TURB", "Bestune", "B70", "BESTUNE OBREGON", 400, 180);
-        AgregarMantenimiento(111, "JIM-REMAX-42", "JIM", "Re-Max S", "JIM HERMOSILLO", 5, 180);
-        AgregarMantenimiento(112, "DGE-ATT-SXT", "Dodge", "Attitude", "DODGE CIUDAD OBREGON", 185, 180);
-        AgregarMantenimiento(113, "VOL-XC60-HYB", "Volvo", "XC60 Recharge", "VOLVO CULIACAN", 120, 365);
-
-
-
+    private void VerHistorialCompleto(string bastidor) {
+        bastidorSeleccionadoDetalle = bastidor;
+        historialFiltrado = listaHistorial.Where(x => x.FkBastidor == bastidor).OrderByDescending(x => x.fechaMantenimiento).ToList();
+        _verHistorialDetalle = true;
     }
 
-    private void AgregarMantenimiento(int id, string serie, string marca, string modelo, string concesionario, int diasAtrasUltimoMant, int intervalo)
-    {
-        listaMantenimientos.Add(new MantenimientoFila
-        {
-            IdMantenimiento = id,
-            NoSerie = serie,
-            Marca = marca,
-            Modelo = modelo,
-            Concesionario = concesionario,
-            UltimoMantenimiento = DateTime.Now.AddDays(-diasAtrasUltimoMant),
-            IntervaloDias = intervalo
-        });
-    }
-
-    private void NavegarARegistrarMantenimiento()
-    {
-        NavigationManager.NavigateTo("/mantenimientos/mantenimiento/registro_mantenimientos");
-    }
-
-
-    private bool _quickFilter(MantenimientoFila x)
-    {
-        if (string.IsNullOrWhiteSpace(_searchString))
-            return true;
-
-        if (x.NoSerie?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Marca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Modelo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Concesionario?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        return false;
-    }
-
-    public bool _abreCrearMantenimiento;
-    public void AbrirCrearMantenimiento()
-    {
-        if (_abreCrearMantenimiento)
-            _abreCrearMantenimiento = false;
-        else
-            _abreCrearMantenimiento = true;
-    }
-
-        MudForm formulario;
-    bool mostrarExito = false;
-
-    string vehiculoSeleccionado;
-
-    void GuardarMantenimiento()
-    {
-        formulario.Validate();
-
-        if (formulario.IsValid)
-        {
-            mostrarExito = true;
+    private async Task GuardarMantenimiento() {
+        await formulario.Validate();
+        if (formulario.IsValid) {
+            var registro = new HistorialMantenimiento {
+                Id = selectedItem?.Id ?? 0,
+                FkBastidor = vehiculoSeleccionado.Bastidor,
+                IdConcesionario = concesionarioSeleccionado.Id,
+                fechaMantenimiento = fechaSeleccionada ?? DateTime.Now,
+                FechaModificacion = DateTime.Now,
+                UsuarioModifico = 1,
+                Activo = true
+            };
+            var res = selectedItem == null ? await Http.PostAsJsonAsync("api/historialmantenimientos", registro) : await Http.PutAsJsonAsync($"api/historialmantenimientos/{registro.Id}", registro);
+            if (res.IsSuccessStatusCode) {
+                await CargarDatos();
+                _abreCrearMantenimiento = false;
+                LimpiarForm();
+                Snackbar.Add("Guardado", Severity.Success);
+            }
         }
     }
 
-    private readonly string[] _vehiculos = new[]
-    {
-        "101 - FRD-2024-X - Ford Ranger Raptor - FORD CIUDAD OBREGON",
-        "102 - MZD-5544-Y - Mazda CX-5 - MAZDA LOS MOCHIS",
-        "103 - JEEP-WRG-4X4 - Jeep Wrangler Rubicon - JEEP CIUDAD OBREGON",
-        "104 - PEU-2008-GT - Peugeot 2008 GT - PEUGEOT CIUDAD OBREGON",
-        "105 - JEEP-WRG-4X4 - Jeep Wrangler Rubicon - JEEP CIUDAD OBREGON",
-        "106 - RAM-700-LRAM - Ram 700 Laramie - RAM TRES RIOS",
-        "107 - JET-X70-PLUS - Jetour X70 Plus - JETOUR MAZATLAN",
-        "108 - LNC-NVG-BLK - Lincoln Navigator - LINCOLN CULIACAN",
-        "109 - FIA-PLS-ABTH - Fiat Pulse Abarth - FIAT TRES RIOS",
-        "110 - BST-B70-TURB - Bestune B70 - BESTUNE OBREGON",
-        "111 - JIM-REMAX-42 - JIM Re-Max S - JIM HERMOSILLO",
-        "112 - DGE-ATT-SXT - Dodge Attitude - DODGE CIUDAD OBREGON",
-        "113 - VOL-XC60-HYB - Volvo XC60 Recharge - VOLVO CULIACAN"
-    };
+    private void EditarRegistro(HistorialMantenimiento item) {
+        selectedItem = item;
+        vehiculoSeleccionado = listaVehiculos.FirstOrDefault(v => v.Bastidor == item.FkBastidor);
+        concesionarioSeleccionado = listaConcesionarios.FirstOrDefault(c => c.Id == item.IdConcesionario);
+        fechaSeleccionada = item.fechaMantenimiento;
+        _abreCrearMantenimiento = true;
+    }
 
+    private void LimpiarForm() {
+        selectedItem = null;
+        vehiculoSeleccionado = null;
+        concesionarioSeleccionado = null;
+        fechaSeleccionada = DateTime.Today;
+    }
 
+    public void AbrirCrearMantenimiento() {
+        if (!_abreCrearMantenimiento) LimpiarForm();
+        _abreCrearMantenimiento = !_abreCrearMantenimiento;
+    }
+
+    private string ObtenerInfoVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor) is var v && v != null ? $"{v.DesMarca} {v.DesModelo}" : bastidor;
+    private string ObtenerNombreConcesionario(int id) => listaConcesionarios.FirstOrDefault(c => c.Id == id)?.Nombre ?? "Desconocido";
+
+    MudForm formulario;
 }
