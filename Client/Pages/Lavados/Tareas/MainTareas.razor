@@ -2,17 +2,18 @@
 
 @using MudBlazor
 @using System.Globalization
+@using AdminHerramientas.Shared.Models
 @inject NavigationManager NavigationManager
-@using System.Text.RegularExpressions
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
-
-<PageTitle>Lista Tareas</PageTitle>
+<PageTitle>Configuración de Tareas</PageTitle>
 
 <MudGrid Class="mt-5" Justify="Justify.Center">
-<MudItem xs="10">
+    <MudItem xs="10">
 
         <MudText Typo="Typo.h3" Class="mb-4">
-            Tareas
+            Gestión de Tareas
         </MudText>
 
         <MudPaper Class="pa-4 mb-4">
@@ -21,50 +22,47 @@
                        Color="Color.Tertiary"
                        Class="mr-3"
                        OnClick="@AbrirCrearTarea">
-                Registrar Tarea
+                Nueva Tarea
             </MudButton>
 
-            @*Overlay de Agregar Tarea*@
+            @*Overlay de Crear/Editar Tarea*@
             <MudOverlay Visible="_abreCrearTarea" OnClick="@AbrirCrearTarea" DarkBackground="true" ZIndex="5" />
 
-            @*Popover para registrar el prestamo*@
+            @*Popover para el formulario*@
             <MudPopover Open="@_abreCrearTarea" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
-                
+
                 <MudText Typo="Typo.h5" Class="pa-4">
-                    Registrar Tarea
+                    @(selectedItem == null ? "Registrar Nueva Tarea" : "Editar Tarea")
                 </MudText>
-                
-                <div style="width: 1000px; heigth: auto;" class="pa-5">
+
+                <div style="width: 600px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
                         <MudForm @ref="formulario" Spacing="9">
-                                            <MudTextField T="string"
-                                        Label="Tarea"
-                                        Variant="Variant.Outlined"
-                                        Required="true"
-                                        RequiredError="Campo obligatorio"
-                                        @bind-Value="nombreTarea"
-                                        Class="mb-4" />
+                            
+                            <MudTextField @bind-Value="nombreTarea" 
+                                         Label="Nombre de la Tarea" 
+                                         Variant="Variant.Outlined" 
+                                         Required="true" 
+                                         RequiredError="El nombre es obligatorio" />
 
-                            <MudTextField T="string"
-                                        Label="Comisión"
-                                        Variant="Variant.Outlined"
-                                        Required="true"
-                                        RequiredError="Campo obligatorio"
-                                        @bind-Value="comision"
-                                        Immediate="true"
-                                        Validation="ValidarComision"
-                                        Class="mb-4" />
+                            <MudNumericField @bind-Value="comisionTarea" 
+                                            Label="Comisión ($)" 
+                                            Variant="Variant.Outlined" 
+                                            Format="N2" 
+                                            Culture="@_mexico"
+                                            Required="true" 
+                                            RequiredError="La comisión es obligatoria" />
+
+                            
 
                             <MudCardActions>
-                                <MudButton Variant="Variant.Filled"
-                                        Color="Color.Primary"
-                                        DisableElevation="true"
-                                        Class="ml-auto"
-                                        OnClick="@AbrirCrearTarea">
-                                    Registrar Tarea
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Primary" 
+                                           Class="ml-auto" 
+                                           OnClick="GuardarTarea">
+                                    @(selectedItem == null ? "GUARDAR" : "ACTUALIZAR")
                                 </MudButton>
                             </MudCardActions>
-
 
                         </MudForm>
                     </MudStack>
@@ -73,139 +71,153 @@
 
         </MudPaper>
 
-<MudDataGrid T="Tarea"
-             Items="@tareas"
-             Filterable="true"
-             Sortable="true"
-             QuickFilter="@_quickFilter">
+        <MudDataGrid T="Tarea"
+                     Items="@listaTareas"
+                     Filterable="true"
+                     Sortable="true"
+                     QuickFilter="@_quickFilter"
+                     @bind-SelectedItem="selectedItem">
 
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Lista de Tareas</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString"
-                      Placeholder="Buscar tarea..."
-                      Adornment="Adornment.Start"
-                      Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      IconSize="Size.Medium"
-                      Class="mt-0" />
-    </ToolBarContent>
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Tareas Disponibles</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString"
+                              Placeholder="Buscar por nombre..."
+                              Adornment="Adornment.Start"
+                              Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0" />
+            </ToolBarContent>
 
-    <Columns>
-        <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
-        <PropertyColumn Property="x => x.TareaTxt" Title="Tarea" />
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                <PropertyColumn Property="x => x.NombreTarea" Title="Descripción" />
+                <TemplateColumn Title="Comisión">
+                    <CellTemplate>
+                        @context.Item.ComisionTarea.ToString("C", _mexico)
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Acciones">
+                    <CellTemplate>
+                        <MudButton
+                            Color="Color.Warning" 
+                            Size="Size.Small" 
+                            OnClick="@(() => EditarTarea(context.Item))">
+                            <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
 
-        <TemplateColumn Title="Comisión">
-            <CellTemplate>
-                @context.Item.Comision.ToString("C", new CultureInfo("es-MX"))
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
+            <PagerContent>
+                <MudDataGridPager T="Tarea" />
+            </PagerContent>
 
-    <PagerContent>
-        <MudDataGridPager T="Tarea" />
-    </PagerContent>
+        </MudDataGrid>
 
-</MudDataGrid>
-
-<MudCardActions>
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Secondary"
-               Class="ml-auto"
-               DisableElevation="true">
-        Eliminar Tarea
-    </MudButton>
-</MudCardActions>
-
-</MudItem>
+    </MudItem>
 </MudGrid>
 
 @code {
-
     private string _searchString;
-
-    private List<Tarea> tareas = new()
-    {
-        new Tarea { Id = 1, TareaTxt = "Lavado Completo", Comision = 70 },
-        new Tarea { Id = 2, TareaTxt = "Lavado Exterior", Comision = 40 },
-        new Tarea { Id = 3, TareaTxt = "Lavado Interior", Comision = 35 }
-    };
-
-    private bool _quickFilter(Tarea x)
-    {
-        if (string.IsNullOrWhiteSpace(_searchString))
-            return true;
-
-        if (x.TareaTxt?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-
-        if (x.Comision.ToString().Contains(_searchString))
-            return true;
-
-        return false;
-    }
-
-    class Tarea
-    {
-        public int Id { get; set; }
-        public string TareaTxt { get; set; }
-        public double Comision { get; set; }
-    }
-
-    private void NavegarARegistrarTarea()
-    {
-        NavigationManager.NavigateTo("/lavados/tareas/registrar_tarea");
-    }
-
-    private void NavegarAEliminarLavado()
-    {
-        NavigationManager.NavigateTo("/lavados/tareas/eliminar_tarea");
-    }
-
-
-    MudForm formulario;
+    private Tarea selectedItem;
+    private List<Tarea> listaTareas = new();
+    private MudForm formulario;
     public bool _abreCrearTarea;
+    private CultureInfo _mexico = new CultureInfo("es-MX");
 
-    public void AbrirCrearTarea()
+    // Variables de formulario
+    private string nombreTarea;
+    private decimal comisionTarea;
+    //private bool estaActiva = true;
+
+    protected override async Task OnInitializedAsync()
     {
-        if (_abreCrearTarea)
-            _abreCrearTarea = false;
-        else
-            _abreCrearTarea = true;
+        await CargarDatos();
     }
 
-    bool success;
-    string[] errors = { };
-    MudForm form;
-
-    string nombreTarea;
-    string comision;
-
-    void TryRegistrarTarea()
+    private async Task CargarDatos()
     {
-        form.Validate();
-        if (form.IsValid)
+        try 
         {
-            form.Reset();
-            nombreTarea = null;
-            comision = null;
+            listaTareas = await Http.GetFromJsonAsync<List<Tarea>>("api/tareas") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
         }
     }
 
-    private string ValidarComision(string value)
+    protected async Task GuardarTarea()
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return "Campo obligatorio";
+        await formulario.Validate();
 
-        // Only numbers with exactly two decimals
-        var regex = new Regex(@"^\d+(\.\d{2})$");
+        if (formulario.IsValid)
+        {
+            Tarea tareaAGuardar = new Tarea
+            {
+                Id = selectedItem?.Id ?? 0,
+                NombreTarea = nombreTarea,
+                ComisionTarea = comisionTarea,
+                FechaModificacion = DateTime.Now,
+                UsuarioModifico = 1,
+                Activo = true
+            };
 
-        if (!regex.IsMatch(value))
-            return "Debe ser un número con exactamente 2 decimales (ej. 100.00)";
+            HttpResponseMessage response;
+            
+            if (selectedItem == null)
+            {
+                // Crear nueva
+                response = await Http.PostAsJsonAsync("api/tareas", tareaAGuardar);
+            }
+            else
+            {
+                // Editar existente
+                response = await Http.PutAsJsonAsync($"api/tareas/{tareaAGuardar.Id}", tareaAGuardar);
+            }
 
-        return null;
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add(selectedItem == null ? "Tarea creada" : "Tarea actualizada", Severity.Success);
+                await CargarDatos();
+                LimpiarFormulario();
+                _abreCrearTarea = false;
+            }
+            else
+            {
+                Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+            }
+        }
     }
 
+    private void EditarTarea(Tarea tarea)
+    {
+        selectedItem = tarea;
+        nombreTarea = tarea.NombreTarea;
+        comisionTarea = tarea.ComisionTarea;
+        //estaActiva = tarea.Activo;
+        _abreCrearTarea = true;
+    }
 
+    private void LimpiarFormulario()
+    {
+        selectedItem = null;
+        nombreTarea = string.Empty;
+        comisionTarea = 0;
+        //estaActiva = true;
+    }
 
+    private bool _quickFilter(Tarea x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        return x.NombreTarea?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    public void AbrirCrearTarea() 
+    {
+        if (!_abreCrearTarea) LimpiarFormulario(); // Reset al abrir para "Nuevo"
+        _abreCrearTarea = !_abreCrearTarea;
+    }
 }

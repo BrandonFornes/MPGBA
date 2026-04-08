@@ -160,6 +160,8 @@ nCrunchTemp_*
 *.mm.*
 AutoTest.Net/
 
+.DS_Store
+
 # Web workbench (sass)
 .sass-cache/
 

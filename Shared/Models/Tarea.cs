@@ -1,19 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminHerramientas.Shared.Models;
 
 public partial class Tarea
 {
-    public int TrsId { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-    public string TrsNombreTarea { get; set; } = null!;
+    [Required]
+    [StringLength(100)]
+    [Column("nombreTarea")] // Mapeo exacto al nombre en la DB
+    public string NombreTarea { get; set; } = null!;
 
-    public decimal TrsComisionTarea { get; set; }
+    [Column("comisionTarea")]
+    public decimal ComisionTarea { get; set; }
 
-    public DateTime TrsFechaModificacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
 
-    public int TrsUsuarioModifico { get; set; }
+    public int UsuarioModifico { get; set; }
 
-    public virtual ICollection<RegistrosLavado> RegistrosLavados { get; } = new List<RegistrosLavado>();
+    public bool Activo { get; set; }
+
+    // Relación: Una tarea tiene muchos registros de lavado
+    public virtual ICollection<RegistrosLavado> RegistrosLavados { get; set; } = new List<RegistrosLavado>();
 }
