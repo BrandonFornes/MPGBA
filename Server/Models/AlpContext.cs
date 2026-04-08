@@ -297,6 +297,11 @@ public partial class AlpContext : DbContext
                 .HasForeignKey(d => d.FkIdTarea)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Lavados_Tareas");
+
+            entity.Property(e => e.FkBastidor)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("fk_bastidor");
         });
 
         modelBuilder.Entity<Tarea>(entity =>

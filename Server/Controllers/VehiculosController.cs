@@ -21,5 +21,23 @@ namespace AdminHerramientas.Server.Controllers
             var vehiculos = await _context.Vehiculos.ToListAsync();
             return Ok(vehiculos);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearVehiculo(Vehiculo vehiculo)
+        {
+            _context.Vehiculos.Add(vehiculo);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPut("{bastidor}")]
+        public async Task<IActionResult> EditarVehiculo(string bastidor, Vehiculo vehiculo)
+        {
+            if (!bastidor.Equals(vehiculo.Bastidor)) return BadRequest();
+
+            _context.Entry(vehiculo).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
