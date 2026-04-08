@@ -18,7 +18,7 @@ namespace AdminHerramientas.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Vehiculo>>> GetVehiculos()
         {
-            var vehiculos = await _context.Tareas.Where(v => v.Activo == true).ToListAsync();
+            var vehiculos = await _context.Vehiculos.ToListAsync();
             return Ok(vehiculos);
         }
     }
