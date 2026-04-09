@@ -19,7 +19,7 @@ namespace AdminHerramientas.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Operario>>> GetOperarios()
         {
-            return await _context.Operarios.Where(o => o.Activo == true).ToListAsync();
+            return await _context.Operarios.Where(o => o.Activo == true).AsNoTracking().ToListAsync();
         }
     }
 }

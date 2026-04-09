@@ -18,7 +18,7 @@ namespace AdminHerramientas.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Empresa>>> GetEmpresas()
         {
-            var empresas = await _context.Empresas.ToListAsync();
+            var empresas = await _context.Empresas.AsNoTracking().ToListAsync();
             return Ok(empresas);
         }
     }

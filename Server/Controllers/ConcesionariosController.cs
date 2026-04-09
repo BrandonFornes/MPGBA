@@ -18,7 +18,7 @@ namespace AdminHerramientas.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Concesionario>>> GetConcesionarios()
         {
-            var concesionarios = await _context.Concesionarios.ToListAsync();
+            var concesionarios = await _context.Concesionarios.AsNoTracking().ToListAsync();
             return Ok(concesionarios);
         }
 
