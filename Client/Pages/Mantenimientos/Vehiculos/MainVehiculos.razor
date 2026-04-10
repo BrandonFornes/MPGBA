@@ -16,18 +16,18 @@
                 Registrar Vehículo
             </MudButton>
 
-            @* --- OVERLAY Y POPOVER --- *@
             <MudOverlay Visible="_abreCrearVehiculo" OnClick="@AbrirCrearVehiculo" DarkBackground="true" ZIndex="5" />
 
             <MudPopover Open="@_abreCrearVehiculo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
-                <MudText Typo="Typo.h5" Class="pa-4">Registrar Nuevo Vehículo</MudText>
+                @* Cambio de título dinámico *@
+                <MudText Typo="Typo.h5" Class="pa-4">@(selectedItem == null ? "Registrar Nuevo" : "Editar") Vehículo</MudText>
                 
                 <div style="width: 800px; height: auto;" class="pa-5">
                     <MudForm @ref="formulario">
                         <MudGrid>
                             <MudItem xs="6">
                                 <MudTextField T="string" Label="IDV" @bind-Value="nuevoVehiculo.Idv" Required="true" Variant="Variant.Outlined" Class="mb-4" />
-                                <MudTextField T="string" Label="Bastidor (VIN)" @bind-Value="nuevoVehiculo.Bastidor" Required="true" Variant="Variant.Outlined" Class="mb-4" />
+                                <MudTextField T="string" Label="Bastidor (VIN)" @bind-Value="nuevoVehiculo.Bastidor" Required="true" Variant="Variant.Outlined" Class="mb-4" Disabled="@(selectedItem != null)" />
                                 <MudTextField T="string" Label="Marca" @bind-Value="nuevoVehiculo.Marca" Required="true" Variant="Variant.Outlined" MaxLength="5" Class="mb-4" />
                                 <MudTextField T="string" Label="Descripción Marca" @bind-Value="nuevoVehiculo.DesMarca" Variant="Variant.Outlined" Class="mb-4" />
                                 <MudTextField T="string" Label="Modelo" @bind-Value="nuevoVehiculo.Modelo" Variant="Variant.Outlined" Class="mb-4" />
@@ -45,8 +45,9 @@
                         </MudGrid>
 
                         <MudCardActions>
+                            <MudButton OnClick="@AbrirCrearVehiculo" Color="Color.Default" Class="mr-2">Cancelar</MudButton>
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarVehiculo">
-                                Guardar Vehículo
+                                @(selectedItem == null ? "Guardar Vehículo" : "Actualizar Cambios")
                             </MudButton>
                         </MudCardActions>
                     </MudForm>
@@ -63,11 +64,18 @@
             <Columns>
                 <PropertyColumn Property="x => x.Idv" Title="IDV" />
                 <PropertyColumn Property="x => x.Bastidor" Title="Bastidor" />
-                <PropertyColumn Property="x => x.DesMarca" Title="Marca" />
+                <PropertyColumn Property="x => x.Marca" Title="Marca" />
                 <PropertyColumn Property="x => x.DesModelo" Title="Modelo" />
                 <PropertyColumn Property="x => x.AnioVehi" Title="Año" />
                 <PropertyColumn Property="x => x.Km" Title="Kms" Format="N0" />
                 <PropertyColumn Property="x => x.Fechafin" Title="Fecha Fin" Format="dd/MM/yyyy" />
+                
+                @* --- NUEVA COLUMNA DE ACCIONES --- *@
+                <TemplateColumn Title="Acciones" Filterable="false" Sortable="false">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => EditarVehiculo(context.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
             <PagerContent>
                 <MudDataGridPager T="Vehiculo" />
@@ -80,17 +88,14 @@
     private string _searchString;
     private List<Vehiculo> ListaVehiculos = new();
     private Vehiculo nuevoVehiculo = new();
+    private Vehiculo? selectedItem; // Para saber si estamos editando
     private MudForm formulario;
     private DateTime? fechaFinSeleccionada = DateTime.Today.AddYears(1);
     public bool _abreCrearVehiculo;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarVehiculos();
-    }
+    protected override async Task OnInitializedAsync() => await CargarVehiculos();
 
-    private async Task CargarVehiculos()
-    {
+    private async Task CargarVehiculos() {
         try {
             ListaVehiculos = await Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos") ?? new();
         } catch (Exception ex) {
@@ -98,48 +103,68 @@
         }
     }
 
-    private async Task GuardarVehiculo()
-    {
+    private void EditarVehiculo(Vehiculo v) {
+        selectedItem = v;
+        // Clonamos los datos para no afectar la lista original antes de guardar
+        nuevoVehiculo = new Vehiculo {
+            Idv = v.Idv,
+            Bastidor = v.Bastidor,
+            Marca = v.Marca,
+            DesMarca = v.DesMarca,
+            Modelo = v.Modelo,
+            DesModelo = v.DesModelo,
+            AnioVehi = v.AnioVehi,
+            Km = v.Km,
+            Familia = v.Familia,
+            Fechafin = v.Fechafin
+        };
+        fechaFinSeleccionada = v.Fechafin;
+        _abreCrearVehiculo = true;
+    }
+
+    private async Task GuardarVehiculo() {
         await formulario.Validate();
-        if (formulario.IsValid)
-        {
+        if (formulario.IsValid) {
             nuevoVehiculo.Fechafin = fechaFinSeleccionada ?? DateTime.Now;
             
-            var response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
+            HttpResponseMessage response;
             
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add("Vehículo registrado exitosamente", Severity.Success);
+            if (selectedItem == null) {
+                // MODO CREAR
+                response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
+            } else {
+                // MODO EDITAR (Asumiendo que el Bastidor es tu llave en el API)
+                response = await Http.PutAsJsonAsync($"api/vehiculos/{nuevoVehiculo.Bastidor}", nuevoVehiculo);
+            }
+            
+            if (response.IsSuccessStatusCode) {
+                Snackbar.Add(selectedItem == null ? "Vehículo registrado" : "Vehículo actualizado", Severity.Success);
                 await CargarVehiculos();
                 _abreCrearVehiculo = false;
                 LimpiarFormulario();
-            }
-            else
-            {
-                Snackbar.Add("Error al guardar. Revisa que el IDV o Bastidor no estén duplicados.", Severity.Error);
+            } else {
+                Snackbar.Add("Error al procesar la solicitud. Verifica los datos.", Severity.Error);
             }
         }
     }
 
-    private void LimpiarFormulario()
-    {
+    private void LimpiarFormulario() {
+        selectedItem = null;
         nuevoVehiculo = new Vehiculo();
         fechaFinSeleccionada = DateTime.Today.AddYears(1);
-        formulario.ResetValidation();
+        if (formulario != null) formulario.ResetValidation();
     }
 
-    public void AbrirCrearVehiculo()
-    {
-        if (_abreCrearVehiculo) LimpiarFormulario();
+    public void AbrirCrearVehiculo() {
+        if (!_abreCrearVehiculo) LimpiarFormulario();
         _abreCrearVehiculo = !_abreCrearVehiculo;
     }
 
-    private bool _quickFilter(Vehiculo x)
-    {
+    private bool _quickFilter(Vehiculo x) {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
-        return x.Bastidor.Contains(_searchString, StringComparison.OrdinalIgnoreCase) || 
-               x.DesMarca.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-               x.Idv.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+        return (x.Bastidor?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) || 
+               (x.DesMarca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (x.Idv?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false);
     }
 
     List<string> listaFamilias = new() { "FORD", "MAZDA", "DONGFENG", "JETOUR", "LINCOLN" };
