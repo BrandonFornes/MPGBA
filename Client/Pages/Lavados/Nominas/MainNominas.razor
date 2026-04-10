@@ -21,17 +21,18 @@
                 Generar Nómina
             </MudButton>
 
-            @* --- OVERLAYS --- *@
+            @* --- OVERLAYS CON LIMPIEZA --- *@
             <MudOverlay Visible="_abreCrearLavado" OnClick="@AbrirCrearLavado" DarkBackground="true" ZIndex="5" />
             <MudOverlay Visible="_abreGenerarNomina" OnClick="@AbrirGenerarNomina" DarkBackground="true" ZIndex="5" />
 
-            @* --- POPOVER: REGISTRAR/EDITAR LAVADO --- *@
+            @* --- POPOVER: REGISTRAR/EDITAR --- *@
             <MudPopover Open="@_abreCrearLavado" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
                 <MudText Typo="Typo.h5" Class="pa-4">@(selectedItem == null ? "Registrar Nuevo Lavado" : "Editar Registro #" + selectedItem.Id)</MudText>
                 <div style="width: 600px; height: auto;" class="pa-5">
                     <MudForm @ref="formRegistro">
+                        @* FILTRO 1: Solo personal de Lavado *@
                         <MudSelect T="Operario" Label="Seleccionar Lavador" @bind-Value="operarioSeleccionado" Variant="Variant.Outlined" Required="true" Class="mb-4">
-                            @foreach (var op in listaOperarios)
+                            @foreach (var op in OperariosLavado)
                             {
                                 <MudSelectItem Value="@op">@op.Nombre</MudSelectItem>
                             }
@@ -61,26 +62,21 @@
                     </MudForm>
                 </div>
             </MudPopover>
+
             @* --- POPOVER: GENERAR NÓMINA --- *@
             <MudPopover Open="@_abreGenerarNomina" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
                 <MudText Typo="Typo.h5" Class="pa-4">Cálculo de Nómina</MudText>
                 <div style="width: 800px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
-                        <MudSelect T="Operario" 
-                                Label="Seleccionar Operario" 
-                                @bind-Value="operarioFiltroNomina" 
-                                Variant="Variant.Outlined" 
-                                Class="mb-4">
-                            @foreach (var op in listaOperarios)
+                        @* FILTRO 2: Solo lavadores con registros previos *@
+                        <MudSelect T="Operario" Label="Seleccionar Operario" @bind-Value="operarioFiltroNomina" Variant="Variant.Outlined" Class="mb-4">
+                            @foreach (var op in OperariosLavado)
                             {
                                 <MudSelectItem Value="@op">@op.Nombre</MudSelectItem>
                             }
                         </MudSelect>
                         
-                        <MudButton Variant="Variant.Filled" 
-                                Color="Color.Primary" 
-                                OnClick="FiltrarNomina"
-                                StartIcon="@Icons.Material.Filled.Calculate">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FiltrarNomina" StartIcon="@Icons.Material.Filled.Calculate">
                             Ver Detalle de Pagos
                         </MudButton>
 
@@ -114,7 +110,14 @@
             </MudPopover>
         </MudPaper>
 
-        <MudDataGrid T="RegistrosLavado" Items="@listaHistorial" Filterable="true" Sortable="true">
+        <MudDataGrid T="RegistrosLavado" Items="@listaHistorial" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Historial de Servicios</MudText>
+                <MudSpacer />
+                @* BUSCADOR DE LA TABLA *@
+                <MudTextField @bind-Value="_searchString" Placeholder="Buscar por lavador, vehículo o folio..." 
+                              Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="Folio" />
                 <TemplateColumn Title="Operario">
@@ -123,9 +126,6 @@
                 <TemplateColumn Title="Tarea">
                     <CellTemplate>@ObtenerNombreTarea(context.Item.FkIdTarea)</CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn Title="Bastidor">
-                    <CellTemplate>@ObtenerBastidorVehiculo(context.Item.FkBastidor)</CellTemplate>
-                </TemplateColumn>
                 <TemplateColumn Title="Vehiculo">
                     <CellTemplate>@ObtenerNombreVehiculo(context.Item.FkBastidor)</CellTemplate>
                 </TemplateColumn>
@@ -133,10 +133,7 @@
                 <PropertyColumn Property="x => x.ComisionRegistro" Title="Pago" Format="C2" />
                 <TemplateColumn Title="Acciones">
                     <CellTemplate>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                       Color="Color.Warning" 
-                                       Size="Size.Small" 
-                                       OnClick="@(() => EditarRegistro(context.Item))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => EditarRegistro(context.Item))" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -149,30 +146,37 @@
 
 @code {
     private CultureInfo _mexico = new CultureInfo("es-MX");
+    private string _searchString = "";
     private MudForm formRegistro;
     
     private List<RegistrosLavado> listaHistorial = new();
     private List<Operario> listaOperarios = new();
     private List<Tarea> listaTareas = new();
     private List<Vehiculo> listaVehiculos = new();
-    
-    private RegistrosLavado? selectedItem; // Para rastrear qué estamos editando
+
+    // --- PROPIEDADES FILTRADAS ---
+    private List<Operario> OperariosLavado => listaOperarios
+        .Where(o => o.Seccion != null && o.Seccion.Contains("Lavado", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    private List<Operario> OperariosParaNomina => OperariosLavado
+        .Where(o => listaHistorial.Any(h => h.FkCodigoOperario == o.Codigo))
+        .ToList();
+
+    private RegistrosLavado? selectedItem;
     private Operario operarioSeleccionado;
     private Tarea tareaSeleccionada;
     private Vehiculo vehiculoSeleccionado;
     private DateTime? fechaSeleccionada = DateTime.Today;
 
-    private bool _abreCrearLavado;
-    private bool _abreGenerarNomina;
-    private bool mostrarNomina;
+    private bool _abreCrearLavado, _abreGenerarNomina, mostrarNomina;
     private Operario operarioFiltroNomina;
     private List<RegistrosLavado> nominaFiltrada = new();
     private decimal totalNomina;
 
     protected override async Task OnInitializedAsync() => await CargarTodosLosDatos();
 
-    private async Task CargarTodosLosDatos()
-    {
+    private async Task CargarTodosLosDatos() {
         try {
             var t1 = Http.GetFromJsonAsync<List<RegistrosLavado>>("api/registroslavados");
             var t2 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
@@ -186,27 +190,10 @@
         } catch (Exception ex) { Snackbar.Add("Error: " + ex.Message, Severity.Error); }
     }
 
-    private void EditarRegistro(RegistrosLavado registro)
-    {
-        selectedItem = registro;
-        
-        // Buscamos los objetos correspondientes en las listas para que el MudSelect los marque
-        operarioSeleccionado = listaOperarios.FirstOrDefault(o => o.Codigo == registro.FkCodigoOperario);
-        tareaSeleccionada = listaTareas.FirstOrDefault(t => t.Id == registro.FkIdTarea);
-        // Nota: Asumimos que guardamos el IDV en algún campo o relación, si no, lo dejamos pendiente
-        vehiculoSeleccionado = listaVehiculos.FirstOrDefault(v => v.Bastidor == registro.FkBastidor);
-        
-        fechaSeleccionada = registro.Fecha;
-        _abreCrearLavado = true;
-    }
-
-    private async Task GuardarLavado()
-    {
+    private async Task GuardarLavado() {
         await formRegistro.Validate();
-        if (formRegistro.IsValid)
-        {
-            var registro = new RegistrosLavado
-            {
+        if (formRegistro.IsValid) {
+            var registro = new RegistrosLavado {
                 Id = selectedItem?.Id ?? 0,
                 FkCodigoOperario = operarioSeleccionado.Codigo,
                 FkIdTarea = tareaSeleccionada.Id,
@@ -218,78 +205,77 @@
                 Activo = true
             };
 
-            HttpResponseMessage res;
-            if (selectedItem == null)
-                res = await Http.PostAsJsonAsync("api/registroslavados", registro);
-            else
-                res = await Http.PutAsJsonAsync($"api/registroslavados/{registro.Id}", registro);
+            var res = (selectedItem == null) 
+                ? await Http.PostAsJsonAsync("api/registroslavados", registro) 
+                : await Http.PutAsJsonAsync($"api/registroslavados/{registro.Id}", registro);
 
-            if (res.IsSuccessStatusCode)
-            {
+            if (res.IsSuccessStatusCode) {
                 Snackbar.Add(selectedItem == null ? "Registrado" : "Actualizado", Severity.Success);
                 await CargarTodosLosDatos();
-                LimpiarForm();
                 _abreCrearLavado = false;
             }
         }
     }
 
-    private void LimpiarForm()
+    // --- FILTRO DE BÚSQUEDA ---
+    private bool _quickFilter(RegistrosLavado x)
     {
-        selectedItem = null;
-        operarioSeleccionado = null;
-        tareaSeleccionada = null;
-        vehiculoSeleccionado = null;
-        fechaSeleccionada = DateTime.Today;
+        // 1. Si el buscador está vacío, mostramos todo
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        
+        // 2. Obtenemos los nombres legibles para buscar sobre ellos
+        string lavador = ObtenerNombreOperario(x.FkCodigoOperario);
+        string tarea = ObtenerNombreTarea(x.FkIdTarea);
+        string vehiculo = ObtenerNombreVehiculo(x.FkBastidor);
+        
+        // 3. Convertimos la fecha al formato visual que el usuario conoce
+        string fechaString = x.Fecha.ToString("dd/MM/yyyy");
+
+        // 4. Retornamos true si coincide con cualquier columna
+        return x.Id.ToString().Contains(_searchString) ||
+            lavador.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            tarea.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            vehiculo.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            fechaString.Contains(_searchString); // <--- Filtro por fecha agregado
     }
 
-    private void LimpiarDatosNomina()
-    {
-        operarioFiltroNomina = null; // Limpia el nombre seleccionado
-        mostrarNomina = false;        // Esconde la tabla de resultados
-        nominaFiltrada = new();      // Vacía la lista
-        totalNomina = 0;             // Reinicia el contador
-    }
-
-    public void AbrirCrearLavado() 
-    {
-        if (!_abreCrearLavado) LimpiarForm();
-        _abreCrearLavado = !_abreCrearLavado;
-    }
-
-    private void FiltrarNomina()
-    {
+    private void FiltrarNomina() {
         if (operarioFiltroNomina == null) return;
-        
-        nominaFiltrada = listaHistorial
-            .Where(x => x.FkCodigoOperario == operarioFiltroNomina.Codigo)
-            .ToList();
-        
+        nominaFiltrada = listaHistorial.Where(x => x.FkCodigoOperario == operarioFiltroNomina.Codigo).ToList();
         totalNomina = nominaFiltrada.Sum(x => x.ComisionRegistro);
         mostrarNomina = true;
     }
 
-    // Helpers para mostrar nombres en lugar de IDs en la tabla
+    // --- GESTIÓN DE POPOVERS ---
+    public void AbrirCrearLavado() {
+        if (!_abreCrearLavado) LimpiarForm();
+        _abreCrearLavado = !_abreCrearLavado;
+    }
+
+    public void AbrirGenerarNomina() {
+        if (_abreGenerarNomina) LimpiarDatosNomina();
+        _abreGenerarNomina = !_abreGenerarNomina;
+    }
+
+    private void LimpiarForm() {
+        selectedItem = null; operarioSeleccionado = null; tareaSeleccionada = null;
+        vehiculoSeleccionado = null; fechaSeleccionada = DateTime.Today;
+    }
+
+    private void LimpiarDatosNomina() {
+        operarioFiltroNomina = null; mostrarNomina = false; totalNomina = 0;
+    }
+
+    private void EditarRegistro(RegistrosLavado registro) {
+        selectedItem = registro;
+        operarioSeleccionado = listaOperarios.FirstOrDefault(o => o.Codigo == registro.FkCodigoOperario);
+        tareaSeleccionada = listaTareas.FirstOrDefault(t => t.Id == registro.FkIdTarea);
+        vehiculoSeleccionado = listaVehiculos.FirstOrDefault(v => v.Bastidor == registro.FkBastidor);
+        fechaSeleccionada = registro.Fecha;
+        _abreCrearLavado = true;
+    }
+
     private string ObtenerNombreOperario(string codigo) => listaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
     private string ObtenerNombreTarea(int id) => listaTareas.FirstOrDefault(t => t.Id == id)?.NombreTarea ?? $"ID: {id}";
-
-    private string ObtenerBastidorVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor)?.Bastidor ?? $"BASTIDOR: {bastidor}";
-    private string ObtenerNombreVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor)?.DesModelo ?? $"Modelo: {bastidor}";
-
-    
- 
-
-    public void AbrirGenerarNomina()
-    {
-        if (_abreGenerarNomina) 
-        {
-            // Si ya estaba abierto y lo vamos a cerrar:
-            LimpiarDatosNomina();
-            _abreGenerarNomina = false;
-        }
-        else
-        {
-            _abreGenerarNomina = true;
-        }
-    }
+    private string ObtenerNombreVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor)?.DesModelo ?? "N/A";
 }
