@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-namespace AdminHerramientas.Shared.Models;
 
-public partial class Nip
+namespace AdminHerramientas.Shared.Models
 {
-    public int NipId { get; set; }
-
-    public string NipFkCodigoOperario { get; set; } = null!;
-
-    public string NipNip { get; set; } = null!;
-
-    public DateTime NipFechaModificacion { get; set; }
-
-    public int NipUsuarioModifico { get; set; }
-
-    public virtual Operario NipFkCodigoOperarioNavigation { get; set; } = null!;
+    public class Nip
+    {
+        public int Id { get; set; }
+        public string Fk_codigoOperario { get; set; } = null!;
+        public string ValorNip { get; set; } = null!;
+        public DateTime FechaModificacion { get; set; }
+        public int UsuarioModifico { get; set; }
+        public bool Activo { get; set; }
+    }
 }
+
