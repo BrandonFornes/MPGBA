@@ -40,6 +40,8 @@ public partial class AlpContext : DbContext
 
     public virtual DbSet<Vehiculo> Vehiculos { get; set; }
 
+    public virtual DbSet<Intervalo> Intervalos { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -381,6 +383,35 @@ public partial class AlpContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("MODELO");
+        });
+
+        modelBuilder.Entity<Intervalo>(entity =>
+        {
+            entity.HasKey(e => e.Id); // Define la llave primaria
+
+            entity.ToTable("Intervalos"); // Nombre exacto de la tabla en SQL
+
+            entity.Property(e => e.Id).HasColumnName("Id");
+
+            entity.Property(e => e.marcavehiculo)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("marcavehiculo");
+
+            entity.Property(e => e.Intervalo_dias)
+                .HasColumnName("intervalo_dias");
+
+            entity.Property(e => e.Activo)
+                .HasColumnName("activo")
+                .HasDefaultValueSql("((1))");
+
+            entity.Property(e => e.UsuarioModifico)
+                .HasColumnName("usuario_modifico");
+
+            entity.Property(e => e.FechaModificacion)
+                .HasColumnType("datetime")
+                .HasColumnName("fecha_modificacion")
+                .HasDefaultValueSql("(getdate())");
         });
 
         OnModelCreatingPartial(modelBuilder);
