@@ -102,12 +102,27 @@
                     <CellTemplate>@ObtenerInfoVehiculo(context.Item.FkBastidor)</CellTemplate>
                 </TemplateColumn>
                 <PropertyColumn Property="x => x.fechaMantenimiento" Title="Último Servicio" Format="dd/MM/yyyy" />
-                
+                <TemplateColumn Title="Próximo Servicio (Tentativo)">
+                    <CellTemplate>
+                        @{
+                            // Usamos la función que busca los días según la marca
+                            int diasConfigurados = ObtenerDiasDeIntervalo(context.Item.FkBastidor);
+                            var fechaTentativa = context.Item.fechaMantenimiento.AddDays(diasConfigurados);
+                            
+                            <MudText Typo="Typo.body2" Color="Color.Info" Style="font-weight: bold;">
+                                @fechaTentativa.ToString("dd/MM/yyyy")
+                            </MudText>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                            
                 <TemplateColumn Title="Estado">
                     <CellTemplate>
                         @{
                             // Calculamos la fecha límite según el intervalo
-                            var fechaSiguiente = context.Item.fechaMantenimiento.AddDays(intervaloPredeterminado);
+                            int diasConfigurados = ObtenerDiasDeIntervalo(context.Item.FkBastidor);
+
+                            var fechaSiguiente = context.Item.fechaMantenimiento.AddDays(diasConfigurados);
                             var hoy = DateTime.Now;
                             var limiteProximo = hoy.AddDays(15); // Margen de 15 días para la alerta amarilla
 
@@ -167,6 +182,10 @@
     private DateTime? fechaSeleccionada = DateTime.Today;
     private int intervaloPredeterminado = 30;
 
+    private List<Intervalo> listaIntervalos = new();
+    // Valor de respaldo por si una marca no está en el catálogo
+    private int intervaloDefault = 180;
+
     private bool _abreCrearMantenimiento;
     private bool _verHistorialDetalle;
     private string bastidorSeleccionadoDetalle = "";
@@ -178,10 +197,25 @@
         var t1 = Http.GetFromJsonAsync<List<HistorialMantenimiento>>("api/historialmantenimientos");
         var t2 = Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos");
         var t3 = Http.GetFromJsonAsync<List<Concesionario>>("api/concesionarios");
-        await Task.WhenAll(t1, t2, t3);
+        var t4 = Http.GetFromJsonAsync<List<Intervalo>>("api/intervalos");
+
+        await Task.WhenAll(t1, t2, t3, t4);
         listaHistorial = await t1 ?? new();
         listaVehiculos = await t2 ?? new();
         listaConcesionarios = await t3 ?? new();
+        listaIntervalos = await t4 ?? new();
+    }
+
+    private int ObtenerDiasDeIntervalo(string bastidor)
+    {
+        // 1. Buscamos el vehículo para saber su marca
+        var vehiculo = listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor);
+        if (vehiculo == null) return intervaloDefault;
+
+        // 2. Buscamos en el catálogo de intervalos usando el código de marca
+        var config = listaIntervalos.FirstOrDefault(i => i.marcavehiculo == vehiculo.Marca);
+        
+        return config?.Intervalo_dias ?? intervaloDefault;
     }
 
     private void VerHistorialCompleto(string bastidor) {
