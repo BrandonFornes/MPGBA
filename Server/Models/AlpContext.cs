@@ -26,8 +26,6 @@ public partial class AlpContext : DbContext
 
     public virtual DbSet<HistorialMantenimiento> HistorialMantenimientos { get; set; }
 
-    public virtual DbSet<Nip> Nips { get; set; }
-
     public virtual DbSet<Operario> Operarios { get; set; }
 
     public virtual DbSet<Prestamo> Prestamos { get; set; }
@@ -41,6 +39,8 @@ public partial class AlpContext : DbContext
     public virtual DbSet<Vehiculo> Vehiculos { get; set; }
 
     public virtual DbSet<Intervalo> Intervalos { get; set; }
+
+    public virtual DbSet<Nip> Nips { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -143,26 +143,33 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<Nip>(entity =>
         {
-            entity.HasKey(e => e.NipId).HasName("PK__Nips__2CD53B6476A2AA77");
+            entity.ToTable("Nips");
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.NipId).HasColumnName("nip_Id");
-            entity.Property(e => e.NipFechaModificacion)
+            entity.Property(e => e.Fk_codigoOperario)
+                .HasColumnName("fk_codigoOperario")
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .IsRequired();
+
+            entity.Property(e => e.ValorNip)
+                .HasColumnName("nip")
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .IsRequired();
+
+            entity.Property(e => e.FechaModificacion)
+                .HasColumnName("FechaModificacion")
                 .HasColumnType("datetime")
-                .HasColumnName("nip_FechaModificacion");
-            entity.Property(e => e.NipFkCodigoOperario)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("nip_fk_codigoOperario");
-            entity.Property(e => e.NipNip)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("nip_nip");
-            entity.Property(e => e.NipUsuarioModifico).HasColumnName("nip_UsuarioModifico");
+                .IsRequired();
 
-            entity.HasOne(d => d.NipFkCodigoOperarioNavigation).WithMany(p => p.Nips)
-                .HasForeignKey(d => d.NipFkCodigoOperario)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Nips_Operarios");
+            entity.Property(e => e.UsuarioModifico)
+                .HasColumnName("UsuarioModifico")
+                .IsRequired();
+
+            entity.Property(e => e.Activo)
+                .HasColumnName("Activo")
+                .IsRequired();
         });
 
         modelBuilder.Entity<Operario>(entity =>
