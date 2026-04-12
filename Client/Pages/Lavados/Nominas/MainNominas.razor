@@ -1,4 +1,7 @@
 @page "/lavados/nominas"
+@using ClosedXML.Excel
+@using System.IO
+@inject IJSRuntime JS
 @using MudBlazor
 @using System.Globalization
 @using AdminHerramientas.Shared.Models
@@ -69,19 +72,36 @@
                 <div style="width: 800px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
                         @* FILTRO 2: Solo lavadores con registros previos *@
-                        <MudSelect T="Operario" Label="Seleccionar Operario" @bind-Value="operarioFiltroNomina" Variant="Variant.Outlined" Class="mb-4">
-                            @foreach (var op in OperariosLavado)
-                            {
-                                <MudSelectItem Value="@op">@op.Nombre</MudSelectItem>
-                            }
-                        </MudSelect>
-                        
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudSelect T="Operario" Label="Seleccionar Operario" @bind-Value="operarioFiltroNomina" Variant="Variant.Outlined">
+                                    @foreach (var op in OperariosLavado)
+                                    {
+                                        <MudSelectItem Value="@op">@op.Nombre</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                @* Picker de Rango de Fechas *@
+                                <MudDateRangePicker Label="Rango de Fechas" @bind-DateRange="_dateRange" Variant="Variant.Outlined" />
+                            </MudItem>
+                        </MudGrid>
+
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="FiltrarNomina" StartIcon="@Icons.Material.Filled.Calculate">
                             Ver Detalle de Pagos
                         </MudButton>
 
                         @if (mostrarNomina)
                         {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
+                                <MudText Typo="Typo.h6">Resumen de Pagos</MudText>
+                                <MudButton Variant="Variant.Filled" 
+                                        Color="Color.Success" 
+                                        StartIcon="@Icons.Material.Filled.Download"
+                                        OnClick="ExportarNominaExcel">
+                                    Descargar Excel
+                                </MudButton>
+                            </MudStack>
                             <MudPaper Class="pa-4 mt-4" Elevation="0">
                                 <MudTable Items="@nominaFiltrada" Dense="true" Hover="true">
                                     <HeaderContent>
@@ -174,6 +194,9 @@
     private List<RegistrosLavado> nominaFiltrada = new();
     private decimal totalNomina;
 
+    private MudDateRangePicker _picker;
+    private DateRange _dateRange = new DateRange(DateTime.Now.Date.AddDays(-15), DateTime.Now.Date);
+
     protected override async Task OnInitializedAsync() => await CargarTodosLosDatos();
 
     private async Task CargarTodosLosDatos() {
@@ -240,8 +263,18 @@
     }
 
     private void FiltrarNomina() {
-        if (operarioFiltroNomina == null) return;
-        nominaFiltrada = listaHistorial.Where(x => x.FkCodigoOperario == operarioFiltroNomina.Codigo).ToList();
+        if (operarioFiltroNomina == null || _dateRange.Start == null || _dateRange.End == null) 
+        {
+            Snackbar.Add("Selecciona un operario y un rango de fechas", Severity.Warning);
+            return;
+        }
+
+        nominaFiltrada = listaHistorial
+            .Where(x => x.FkCodigoOperario == operarioFiltroNomina.Codigo &&
+                        x.Fecha.Date >= _dateRange.Start.Value.Date &&
+                        x.Fecha.Date <= _dateRange.End.Value.Date)
+            .ToList();
+
         totalNomina = nominaFiltrada.Sum(x => x.ComisionRegistro);
         mostrarNomina = true;
     }
@@ -263,7 +296,7 @@
     }
 
     private void LimpiarDatosNomina() {
-        operarioFiltroNomina = null; mostrarNomina = false; totalNomina = 0;
+        operarioFiltroNomina = null;  _dateRange = new DateRange(DateTime.Now.Date.AddDays(-15), DateTime.Now.Date); mostrarNomina = false; totalNomina = 0;
     }
 
     private void EditarRegistro(RegistrosLavado registro) {
@@ -273,6 +306,62 @@
         vehiculoSeleccionado = listaVehiculos.FirstOrDefault(v => v.Bastidor == registro.FkBastidor);
         fechaSeleccionada = registro.Fecha;
         _abreCrearLavado = true;
+    }
+
+    private async Task ExportarNominaExcel()
+    {
+        if (!nominaFiltrada.Any()) return;
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("Nomina");
+
+            // --- ENCABEZADOS ---
+            worksheet.Cell(1, 1).Value = "Fecha";
+            worksheet.Cell(1, 2).Value = "Tarea";
+            worksheet.Cell(1, 3).Value = "Vehículo";
+            worksheet.Cell(1, 4).Value = "Comisión";
+
+            // Estilo rápido al encabezado
+            var header = worksheet.Range("A1:D1");
+            header.Style.Font.Bold = true;
+            header.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+            // --- DATOS ---
+            int fila = 2;
+            foreach (var registro in nominaFiltrada)
+            {
+                worksheet.Cell(fila, 1).Value = registro.Fecha.ToString("dd/MM/yyyy");
+                worksheet.Cell(fila, 2).Value = ObtenerNombreTarea(registro.FkIdTarea);
+                worksheet.Cell(fila, 3).Value = ObtenerNombreVehiculo(registro.FkBastidor);
+                worksheet.Cell(fila, 4).Value = registro.ComisionRegistro;
+                worksheet.Cell(fila, 4).Style.NumberFormat.Format = "$ #,##0.00";
+                fila++;
+            }
+
+            // --- TOTAL ---
+            worksheet.Cell(fila, 3).Value = "TOTAL A PAGAR:";
+            worksheet.Cell(fila, 3).Style.Font.Bold = true;
+            worksheet.Cell(fila, 4).Value = totalNomina;
+            worksheet.Cell(fila, 4).Style.Font.Bold = true;
+
+            worksheet.Columns().AdjustToContents(); // Autoajustar ancho de columnas
+
+            // --- DESCARGA ---
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var content = stream.ToArray();
+                using var streamRef = new DotNetStreamReference(new MemoryStream(content));
+                
+                //string nombreArchivo = $"Nomina_{operarioFiltroNomina.Nombre}_{DateTime.Now:yyyyMMdd}.xlsx";
+                string fechaInicio = _dateRange.Start?.ToString("yyyyMMdd");
+                string fechaFin = _dateRange.End?.ToString("yyyyMMdd");
+                string nombreArchivo = $"Nomina_{operarioFiltroNomina.Nombre}_{fechaInicio}_a_{fechaFin}.xlsx";
+                
+                await JS.InvokeVoidAsync("downloadFileFromStream", nombreArchivo, streamRef);
+            }
+        }
     }
 
     private string ObtenerNombreOperario(string codigo) => listaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
