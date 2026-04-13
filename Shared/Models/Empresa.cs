@@ -15,7 +15,6 @@ namespace AdminHerramientas.Shared.Models
         public DateTime fechaModificacion { get; set; }
         public int usuarioModifico { get; set; }
         
-        // Relación: Una empresa tiene muchos concesionarios
         public virtual ICollection<Concesionario> Concesionarios { get; set; } = new List<Concesionario>();
     }
 }

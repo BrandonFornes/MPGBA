@@ -15,17 +15,17 @@
 
         <MudPaper Class="pa-4 mb-4">
             <MudButton Variant="Variant.Filled"
-                       Size="Size.Large"
-                       Color="Color.Tertiary"
-                       Class="mr-3"
-                       OnClick="@AbrirCrearHerramienta">
+                        Size="Size.Large"
+                        Color="Color.Tertiary"
+                        Class="mr-3"
+                        OnClick="@AbrirCrearHerramienta">
                 Crear Herramienta
             </MudButton>
 
             <MudButton Variant="Variant.Filled"
-                       Size="Size.Large"
-                       Color="Color.Info"
-                       OnClick="@AbrirCrearTipo">
+                        Size="Size.Large"
+                        Color="Color.Info"
+                        OnClick="@AbrirCrearTipo">
                 Crear Tipo de Herramienta
             </MudButton>
 
@@ -34,7 +34,6 @@
 
             @*Overlay de Crear Tipo de Herramienta*@
             <MudOverlay Visible="_abreCrearTipo" OnClick="@AbrirCrearTipo" DarkBackground="true" ZIndex="5" />
-
 
             @*Popover para crear herramienta*@
             <MudPopover Open="@_abreCrearHerramienta" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
@@ -56,14 +55,14 @@
 
                             <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
 
-                             <MudDatePicker @bind-Date="FechaHerramienta"
-                                           Label="Fecha de Compra (Opcional)"
-                                           DateFormat="yyyy-MM-dd" /> 
+                            <MudDatePicker @bind-Date="FechaHerramienta"
+                                            Label="Fecha de Compra (Opcional)"
+                                            DateFormat="yyyy-MM-dd" /> 
                             <MudSelect T="bool" Label="Disponible" @bind-Value="DisponibleHerramienta">
                                 <MudSelectItem Value="true">Si</MudSelectItem>
                                 <MudSelectItem Value="false">No</MudSelectItem>
                             </MudSelect>
-                       
+                        
                             <MudSelect T="string" Label="Estado de Herramienta" @bind-Value="EstadoHerramienta">
                                 <MudSelectItem Value="@("Operativa")">Operativa</MudSelectItem>
                                 <MudSelectItem Value="@("Perdida")">Perdida</MudSelectItem>
@@ -105,22 +104,22 @@
         </MudPaper>
 
         <MudDataGrid T="HerramientasDetalle"
-                     Items="@Herramientas"
-                     Filterable="true"
-                     Sortable="true"
-                     QuickFilter="@_quickFilter"
-                     @bind-SelectedItem="selectedItem">
+                        Items="@Herramientas"
+                        Filterable="true"
+                        Sortable="true"
+                        QuickFilter="@_quickFilter"
+                        @bind-SelectedItem="selectedItem">
 
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Lista de Herramientas</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="_searchString"
-                              Placeholder="Buscar por nombre, etiqueta o tipo..."
-                              Adornment="Adornment.Start"
-                              Immediate="true"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium"
-                              Class="mt-0" />
+                                Placeholder="Buscar por nombre, etiqueta o tipo..."
+                                Adornment="Adornment.Start"
+                                Immediate="true"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                IconSize="Size.Medium"
+                                Class="mt-0" />
             </ToolBarContent>
 
             <Columns>
@@ -147,9 +146,9 @@
                 <TemplateColumn Title="Acciones">
                     <CellTemplate>
                         <MudButton Variant="Variant.Filled"
-                                   Color="Color.Warning"
-                                   Size="Size.Small"
-                                   OnClick="@(() => EditarHerramienta(context.Item))">
+                                    Color="Color.Warning"
+                                    Size="Size.Small"
+                                    OnClick="@(() => EditarHerramienta(context.Item))">
                             <MudIcon Icon="@Icons.Material.Filled.Edit"/>
                             
                         </MudButton>
@@ -165,9 +164,9 @@
 
         <MudCardActions>
             <MudButton Variant="Variant.Filled"
-                       Color="Color.Secondary"
-                       Class="ml-auto"
-                       DisableElevation="true">
+                        Color="Color.Secondary"
+                        Class="ml-auto"
+                        DisableElevation="true">
                 Eliminar Herramienta
             </MudButton>
         </MudCardActions>
@@ -176,6 +175,17 @@
 </MudGrid>
 
 @code {
+    public string Nombre { get; set; }
+    public string NombreHerramienta { get; set; }
+    public string EtiquetaHerramienta { get; set; }
+    public string DescripcionHerramienta { get; set; }
+    public DateTime? FechaHerramienta { get; set; }
+    public bool DisponibleHerramienta { get; set; }
+    public string EstadoHerramienta { get; set; }
+    private Herramienta _value;
+    private IEnumerable<string> _options = new HashSet<string> { };
+    MudForm formulario;
+    MudForm formulario2;
 
     private string _searchString;
     private HerramientasDetalle selectedItem;
@@ -186,6 +196,7 @@
     {
         await CargarDatos();
     }
+
     private async Task CargarDatos()
     {
         DisponibleHerramienta = true;
@@ -225,15 +236,12 @@
 
             NombreHerramienta = "";
             _abreCrearTipo = false;
-            //Recargar lista
             TiposHerramientas = await Http.GetFromJsonAsync<List<Herramienta>>("api/herramienta");
         }
         else
         {
             Console.WriteLine(response);
         }
-
-
     }
 
     protected async Task GuardarHerramienta()
@@ -242,8 +250,6 @@
 
         if (formulario.IsValid)
         {
-
-
             HerramientasDetalle herramientasDetalle = new HerramientasDetalle
                 {
                     Id = selectedItem?.Id ?? 0,
@@ -284,27 +290,25 @@
         selectedItem = herramienta ; 
         _abreCrearHerramienta = true;
 
-        // Opcional: cargar datos al formulario
         DescripcionHerramienta = herramienta.Descripcion;
         EtiquetaHerramienta = herramienta.Etiqueta;
         FechaHerramienta = herramienta.FechaCompra;
         DisponibleHerramienta = herramienta.Disponible ?? true;
         EstadoHerramienta = herramienta.Estado;
 
-        _value = TiposHerramientas
-            .FirstOrDefault(t => t.Id == herramienta.FkIdHerramienta);
+        _value = TiposHerramientas.FirstOrDefault(t => t.Id == herramienta.FkIdHerramienta);
     }
 
     private bool _quickFilter(HerramientasDetalle x)
     {
         if (string.IsNullOrWhiteSpace(_searchString))
-             return true;
+            return true;
 
         if (x.Descripcion?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-             return true;
+            return true;
 
         if (x.Etiqueta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-             return true;
+            return true;
         
         if (x.TipoNombre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
@@ -332,18 +336,4 @@
         else
             _abreCrearTipo = true;
     }
-
-    public string Nombre { get; set; }
-    public string NombreHerramienta { get; set; }
-    public string EtiquetaHerramienta { get; set; }
-    public string DescripcionHerramienta { get; set; }
-    public DateTime? FechaHerramienta { get; set; }
-    public bool DisponibleHerramienta { get; set; }
-    public string EstadoHerramienta { get; set; }
-    private Herramienta _value;
-    private IEnumerable<string> _options = new HashSet<string> { };
-    MudForm formulario;
-
-    MudForm formulario2;
-
 }

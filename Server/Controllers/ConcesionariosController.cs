@@ -21,6 +21,5 @@ namespace AdminHerramientas.Server.Controllers
             var concesionarios = await _context.Concesionarios.AsNoTracking().ToListAsync();
             return Ok(concesionarios);
         }
-
     }
 }
