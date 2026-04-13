@@ -19,7 +19,6 @@
             <MudOverlay Visible="_abreCrearVehiculo" OnClick="@AbrirCrearVehiculo" DarkBackground="true" ZIndex="5" />
 
             <MudPopover Open="@_abreCrearVehiculo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
-                @* Cambio de título dinámico *@
                 <MudText Typo="Typo.h5" Class="pa-4">@(selectedItem == null ? "Registrar Nuevo" : "Editar") Vehículo</MudText>
                 
                 <div style="width: 800px; height: auto;" class="pa-5">
@@ -70,7 +69,6 @@
                 <PropertyColumn Property="x => x.Km" Title="Kms" Format="N0" />
                 <PropertyColumn Property="x => x.Fechafin" Title="Fecha Fin" Format="dd/MM/yyyy" />
                 
-                @* --- NUEVA COLUMNA DE ACCIONES --- *@
                 <TemplateColumn Title="Acciones" Filterable="false" Sortable="false">
                     <CellTemplate>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => EditarVehiculo(context.Item))" />
@@ -88,7 +86,7 @@
     private string _searchString;
     private List<Vehiculo> ListaVehiculos = new();
     private Vehiculo nuevoVehiculo = new();
-    private Vehiculo? selectedItem; // Para saber si estamos editando
+    private Vehiculo? selectedItem; 
     private MudForm formulario;
     private DateTime? fechaFinSeleccionada = DateTime.Today.AddYears(1);
     public bool _abreCrearVehiculo;
@@ -105,7 +103,6 @@
 
     private void EditarVehiculo(Vehiculo v) {
         selectedItem = v;
-        // Clonamos los datos para no afectar la lista original antes de guardar
         nuevoVehiculo = new Vehiculo {
             Idv = v.Idv,
             Bastidor = v.Bastidor,
@@ -130,10 +127,8 @@
             HttpResponseMessage response;
             
             if (selectedItem == null) {
-                // MODO CREAR
                 response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
             } else {
-                // MODO EDITAR (Asumiendo que el Bastidor es tu llave en el API)
                 response = await Http.PutAsJsonAsync($"api/vehiculos/{nuevoVehiculo.Bastidor}", nuevoVehiculo);
             }
             
@@ -163,8 +158,8 @@
     private bool _quickFilter(Vehiculo x) {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
         return (x.Bastidor?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) || 
-               (x.DesMarca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-               (x.Idv?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false);
+                (x.DesMarca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.Idv?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false);
     }
 
     List<string> listaFamilias = new() { "FORD", "MAZDA", "DONGFENG", "JETOUR", "LINCOLN" };

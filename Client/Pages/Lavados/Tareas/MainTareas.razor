@@ -18,10 +18,10 @@
 
         <MudPaper Class="pa-4 mb-4">
             <MudButton Variant="Variant.Filled"
-                       Size="Size.Large"
-                       Color="Color.Tertiary"
-                       Class="mr-3"
-                       OnClick="@AbrirCrearTarea">
+                        Size="Size.Large"
+                        Color="Color.Tertiary"
+                        Class="mr-3"
+                        OnClick="@AbrirCrearTarea">
                 Nueva Tarea
             </MudButton>
 
@@ -40,10 +40,10 @@
                         <MudForm @ref="formulario" Spacing="9">
                             
                             <MudTextField @bind-Value="nombreTarea" 
-                                         Label="Nombre de la Tarea" 
-                                         Variant="Variant.Outlined" 
-                                         Required="true" 
-                                         RequiredError="El nombre es obligatorio" />
+                                            Label="Nombre de la Tarea" 
+                                            Variant="Variant.Outlined" 
+                                            Required="true" 
+                                            RequiredError="El nombre es obligatorio" />
 
                             <MudNumericField @bind-Value="comisionTarea" 
                                             Label="Comisión ($)" 
@@ -53,13 +53,11 @@
                                             Required="true" 
                                             RequiredError="La comisión es obligatoria" />
 
-                            
-
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" 
-                                           Color="Color.Primary" 
-                                           Class="ml-auto" 
-                                           OnClick="GuardarTarea">
+                                            Color="Color.Primary" 
+                                            Class="ml-auto" 
+                                            OnClick="GuardarTarea">
                                     @(selectedItem == null ? "GUARDAR" : "ACTUALIZAR")
                                 </MudButton>
                             </MudCardActions>
@@ -72,22 +70,22 @@
         </MudPaper>
 
         <MudDataGrid T="Tarea"
-                     Items="@listaTareas"
-                     Filterable="true"
-                     Sortable="true"
-                     QuickFilter="@_quickFilter"
-                     @bind-SelectedItem="selectedItem">
+                        Items="@listaTareas"
+                        Filterable="true"
+                        Sortable="true"
+                        QuickFilter="@_quickFilter"
+                        @bind-SelectedItem="selectedItem">
 
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Tareas Disponibles</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="_searchString"
-                              Placeholder="Buscar por nombre..."
-                              Adornment="Adornment.Start"
-                              Immediate="true"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium"
-                              Class="mt-0" />
+                                Placeholder="Buscar por nombre..."
+                                Adornment="Adornment.Start"
+                                Immediate="true"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                IconSize="Size.Medium"
+                                Class="mt-0" />
             </ToolBarContent>
 
             <Columns>
@@ -127,10 +125,8 @@
     public bool _abreCrearTarea;
     private CultureInfo _mexico = new CultureInfo("es-MX");
 
-    // Variables de formulario
     private string nombreTarea;
     private decimal comisionTarea;
-    //private bool estaActiva = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -169,12 +165,10 @@
             
             if (selectedItem == null)
             {
-                // Crear nueva
                 response = await Http.PostAsJsonAsync("api/tareas", tareaAGuardar);
             }
             else
             {
-                // Editar existente
                 response = await Http.PutAsJsonAsync($"api/tareas/{tareaAGuardar.Id}", tareaAGuardar);
             }
 
@@ -197,7 +191,6 @@
         selectedItem = tarea;
         nombreTarea = tarea.NombreTarea;
         comisionTarea = tarea.ComisionTarea;
-        //estaActiva = tarea.Activo;
         _abreCrearTarea = true;
     }
 
@@ -206,7 +199,6 @@
         selectedItem = null;
         nombreTarea = string.Empty;
         comisionTarea = 0;
-        //estaActiva = true;
     }
 
     private bool _quickFilter(Tarea x)
@@ -217,7 +209,7 @@
 
     public void AbrirCrearTarea() 
     {
-        if (!_abreCrearTarea) LimpiarFormulario(); // Reset al abrir para "Nuevo"
+        if (!_abreCrearTarea) LimpiarFormulario(); 
         _abreCrearTarea = !_abreCrearTarea;
     }
 }

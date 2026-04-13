@@ -12,7 +12,7 @@ public partial class Tarea
 
     [Required]
     [StringLength(100)]
-    [Column("nombreTarea")] // Mapeo exacto al nombre en la DB
+    [Column("nombreTarea")] 
     public string NombreTarea { get; set; } = null!;
 
     [Column("comisionTarea")]
@@ -24,6 +24,5 @@ public partial class Tarea
 
     public bool Activo { get; set; }
 
-    // Relación: Una tarea tiene muchos registros de lavado
     public virtual ICollection<RegistrosLavado> RegistrosLavados { get; set; } = new List<RegistrosLavado>();
 }

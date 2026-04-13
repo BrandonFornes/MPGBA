@@ -54,7 +54,6 @@ public partial class AlpContext : DbContext
         modelBuilder.Entity<Concesionario>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__concesio__3214EC07B3684BDA");
-            //entity.ToTable("CONCESIONARIOS");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Nombre).HasMaxLength(155).IsUnicode(false);
@@ -62,7 +61,6 @@ public partial class AlpContext : DbContext
             entity.Property(e => e.FkIdEmpresa).HasColumnName("fk_IdEmpresa");
             entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
 
-            // Relación con Empresa
             entity.HasOne(d => d.Empresa)
                 .WithMany(p => p.Concesionarios)
                 .HasForeignKey(d => d.FkIdEmpresa)
@@ -73,7 +71,6 @@ public partial class AlpContext : DbContext
         modelBuilder.Entity<Empresa>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Empresas__3214EC07727B5B99");
-            //entity.ToTable("EMPRESAS");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.RazonSocial).HasMaxLength(155).IsUnicode(false);
@@ -120,23 +117,20 @@ public partial class AlpContext : DbContext
         modelBuilder.Entity<HistorialMantenimiento>(entity =>
         {
             entity.HasKey(e => e.Id);
-            //entity.ToTable("historial_mantenimientos");
 
             entity.Property(e => e.fechaMantenimiento).HasColumnType("datetime");
             entity.Property(e => e.FechaModificacion).HasColumnType("datetime");
             entity.Property(e => e.FkBastidor).HasMaxLength(30).IsUnicode(false).HasColumnName("fk_bastidor");
 
-            // Relación con Concesionario
             entity.HasOne(d => d.Concesionario)
                 .WithMany()
                 .HasForeignKey(d => d.IdConcesionario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Historial_Concesionarios");
 
-            // RELACIÓN CLAVE: Historial -> Vehículo usando BASTIDOR
             entity.HasOne(d => d.Vehiculo)
                 .WithMany() 
-                .HasPrincipalKey(p => p.Bastidor) // El Bastidor es la "llave" en la tabla Vehiculos
+                .HasPrincipalKey(p => p.Bastidor) 
                 .HasForeignKey(d => d.FkBastidor)
                 .HasConstraintName("FK_Historial_Vehiculo_Bastidor");
         });
@@ -288,7 +282,6 @@ public partial class AlpContext : DbContext
                 .HasColumnName("Activo")
                 .HasDefaultValueSql("((1))");
 
-            // Relaciones (Asegúrate de que los nombres de las propiedades en el modelo coincidan)
             entity.HasOne(d => d.OperarioNavigation).WithMany(p => p.RegistrosLavados)
                 .HasForeignKey(d => d.FkCodigoOperario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -307,7 +300,6 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<Tarea>(entity =>
         {
-            // Ahora la llave es "Id" según tu captura
             entity.HasKey(e => e.Id); 
 
             entity.ToTable("Tareas");
@@ -317,7 +309,7 @@ public partial class AlpContext : DbContext
             entity.Property(e => e.NombreTarea)
                 .HasMaxLength(100)
                 .IsUnicode(false)
-                .HasColumnName("nombreTarea"); // Coincide con tu captura
+                .HasColumnName("nombreTarea"); 
 
             entity.Property(e => e.ComisionTarea)
                 .HasColumnType("decimal(18, 2)")
@@ -394,9 +386,9 @@ public partial class AlpContext : DbContext
 
         modelBuilder.Entity<Intervalo>(entity =>
         {
-            entity.HasKey(e => e.Id); // Define la llave primaria
+            entity.HasKey(e => e.Id); 
 
-            entity.ToTable("Intervalos"); // Nombre exacto de la tabla en SQL
+            entity.ToTable("Intervalos"); 
 
             entity.Property(e => e.Id).HasColumnName("Id");
 

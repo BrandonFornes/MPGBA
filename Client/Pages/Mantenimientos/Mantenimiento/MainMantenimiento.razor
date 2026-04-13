@@ -12,11 +12,11 @@
 
         <MudPaper Class="pa-4 mb-4">
             <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3"
-                       OnClick="@AbrirCrearMantenimiento">
+                        OnClick="@AbrirCrearMantenimiento">
                 Registrar Mantenimiento
             </MudButton>
 
-            @* --- OVERLAY PARA CERRAR AL DAR CLIC AFUERA --- *@
+            @* --- OVERLAY --- *@
             <MudOverlay Visible="_abreCrearMantenimiento" OnClick="@AbrirCrearMantenimiento" DarkBackground="true" ZIndex="5" />
             <MudOverlay Visible="_verHistorialDetalle" OnClick="@(() => _verHistorialDetalle = false)" DarkBackground="true" ZIndex="5" />
 
@@ -90,14 +90,13 @@
             </MudPopover>
         </MudPaper>
 
-        @* --- EL CAMBIO CLAVE: Items="@listaUltimosMantenimientos" --- *@
         <MudDataGrid T="HistorialMantenimiento" Items="@listaUltimosMantenimientos" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Panel de Control</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="_searchString" Placeholder="Buscar..." 
-                      Adornment="Adornment.Start" Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+                        Adornment="Adornment.Start" Immediate="true"
+                        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.Id" Title="Folio" />
@@ -108,7 +107,6 @@
                 <TemplateColumn Title="Próximo Servicio (Tentativo)">
                     <CellTemplate>
                         @{
-                            // Usamos la función que busca los días según la marca
                             int diasConfigurados = ObtenerDiasDeIntervalo(context.Item.FkBastidor);
                             var fechaTentativa = context.Item.fechaMantenimiento.AddDays(diasConfigurados);
                             
@@ -122,12 +120,11 @@
                 <TemplateColumn Title="Estado">
                     <CellTemplate>
                         @{
-                            // Calculamos la fecha límite según el intervalo
                             int diasConfigurados = ObtenerDiasDeIntervalo(context.Item.FkBastidor);
 
                             var fechaSiguiente = context.Item.fechaMantenimiento.AddDays(diasConfigurados);
                             var hoy = DateTime.Now;
-                            var limiteProximo = hoy.AddDays(15); // Margen de 15 días para la alerta amarilla
+                            var limiteProximo = hoy.AddDays(15); 
 
                             if (fechaSiguiente < hoy)
                             {
@@ -169,11 +166,11 @@
 
 @code {
     private string _searchString = "";
+    MudForm formulario;
     private List<HistorialMantenimiento> listaHistorial = new();
     private List<Vehiculo> listaVehiculos = new();
     private List<Concesionario> listaConcesionarios = new();
 
-    // Lógica para quitar repetidos: Solo el más nuevo por bastidor
     private List<HistorialMantenimiento> listaUltimosMantenimientos => listaHistorial
         .GroupBy(x => x.FkBastidor)
         .Select(g => g.OrderByDescending(m => m.fechaMantenimiento).First())
@@ -186,7 +183,6 @@
     private int intervaloPredeterminado = 30;
 
     private List<Intervalo> listaIntervalos = new();
-    // Valor de respaldo por si una marca no está en el catálogo
     private int intervaloDefault = 180;
 
     private bool _abreCrearMantenimiento;
@@ -196,7 +192,8 @@
 
     protected override async Task OnInitializedAsync() => await CargarDatos();
 
-    private async Task CargarDatos() {
+    private async Task CargarDatos() 
+    {
         var t1 = Http.GetFromJsonAsync<List<HistorialMantenimiento>>("api/historialmantenimientos");
         var t2 = Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos");
         var t3 = Http.GetFromJsonAsync<List<Concesionario>>("api/concesionarios");
@@ -211,23 +208,23 @@
 
     private int ObtenerDiasDeIntervalo(string bastidor)
     {
-        // 1. Buscamos el vehículo para saber su marca
         var vehiculo = listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor);
         if (vehiculo == null) return intervaloDefault;
 
-        // 2. Buscamos en el catálogo de intervalos usando el código de marca
         var config = listaIntervalos.FirstOrDefault(i => i.marcavehiculo == vehiculo.Marca);
         
         return config?.Intervalo_dias ?? intervaloDefault;
     }
 
-    private void VerHistorialCompleto(string bastidor) {
+    private void VerHistorialCompleto(string bastidor) 
+    {
         bastidorSeleccionadoDetalle = bastidor;
         historialFiltrado = listaHistorial.Where(x => x.FkBastidor == bastidor).OrderByDescending(x => x.fechaMantenimiento).ToList();
         _verHistorialDetalle = true;
     }
 
-    private async Task GuardarMantenimiento() {
+    private async Task GuardarMantenimiento() 
+    {
         await formulario.Validate();
         if (formulario.IsValid) {
             var registro = new HistorialMantenimiento {
@@ -273,20 +270,17 @@
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
 
-        // 1. Datos del Vehículo (Marca, Modelo y VIN)
         var v = listaVehiculos.FirstOrDefault(veh => veh.Bastidor == x.FkBastidor);
         string marca = v?.DesMarca ?? "";
         string modelo = v?.DesModelo ?? "";
         string bastidor = x.FkBastidor ?? "";
 
-        // 2. Fechas (Última y Próxima)
         string fechaUltimo = x.fechaMantenimiento.ToString("dd/MM/yyyy");
         
         int dias = ObtenerDiasDeIntervalo(x.FkBastidor);
         var fechaProxObj = x.fechaMantenimiento.AddDays(dias);
         string fechaProx = fechaProxObj.ToString("dd/MM/yyyy");
 
-        // 3. Lógica de Estado (Debe coincidir con los nombres de tus MudChips)
         string estado = "";
         var hoy = DateTime.Now;
         var limiteProximo = hoy.AddDays(15);
@@ -295,17 +289,14 @@
         else if (fechaProxObj <= limiteProximo) estado = "PRÓXIMO";
         else estado = "EN TIEMPO";
 
-        // 4. Comparación (Buscamos en todos los campos al mismo tiempo)
         return bastidor.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-               marca.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-               modelo.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-               fechaUltimo.Contains(_searchString) ||
-               fechaProx.Contains(_searchString) ||
-               estado.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+                marca.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                modelo.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                fechaUltimo.Contains(_searchString) ||
+                fechaProx.Contains(_searchString) ||
+                estado.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
     }
 
     private string ObtenerInfoVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor) is var v && v != null ? $"{v.DesMarca} {v.DesModelo}" : bastidor;
     private string ObtenerNombreConcesionario(int id) => listaConcesionarios.FirstOrDefault(c => c.Id == id)?.Nombre ?? "Desconocido";
-
-    MudForm formulario;
 }

@@ -32,8 +32,8 @@
                         <MudForm @ref="formularioPrestamo" Spacing="9">
                             @* Selección filtrada solo a Mecánica *@
                             <MudSelect T="Operario" Label="Seleccione Mecánico" @bind-Value="operarioSeleccionado" 
-                                       Variant="Variant.Outlined" Required="true" RequiredError="Campo Obligatorio" 
-                                       AnchorOrigin="Origin.BottomCenter" Class="mb-4">
+                                        Variant="Variant.Outlined" Required="true" RequiredError="Campo Obligatorio" 
+                                        AnchorOrigin="Origin.BottomCenter" Class="mb-4">
                                 @foreach (var op in Mecanicos)
                                 {
                                     <MudSelectItem Value="@op">@($"{op.Codigo} - {op.Nombre}")</MudSelectItem>
@@ -46,10 +46,10 @@
                                 <MudTextField @bind-Value="codigoServicio" Label="Código de Servicio" Variant="Variant.Outlined" Required="true" Class="mb-4" />
 
                                 <MudSelect T="HerramientasDetalle" Label="Escoge la(s) herramientas" Variant="Variant.Outlined" 
-                                           MultiSelection="true" Required="true" RequiredError="Seleccione al menos una"
-                                           Class="mb-4" AnchorOrigin="Origin.BottomCenter"
-                                           ToStringFunc="@(h => h == null ? null : $"{h.Descripcion} - {h.Etiqueta}")"
-                                           @bind-SelectedValues="_herramientasSeleccionadas">
+                                            MultiSelection="true" Required="true" RequiredError="Seleccione al menos una"
+                                            Class="mb-4" AnchorOrigin="Origin.BottomCenter"
+                                            ToStringFunc="@(h => h == null ? null : $"{h.Descripcion} - {h.Etiqueta}")"
+                                            @bind-SelectedValues="_herramientasSeleccionadas">
                                     @foreach (var herramienta in HerramientasDisponibles)
                                     {
                                         <MudSelectItem Value="@herramienta">@herramienta.Descripcion</MudSelectItem>
@@ -57,12 +57,12 @@
                                 </MudSelect>
 
                                 <MudTextField T="string" Label="NIP de Seguridad" @bind-Value="nipEncargado" 
-                                              InputType="InputType.Password" Variant="Variant.Outlined" 
-                                              Required="true" RequiredError="NIP Requerido" Class="mb-4" />
+                                                InputType="InputType.Password" Variant="Variant.Outlined" 
+                                                Required="true" RequiredError="NIP Requerido" Class="mb-4" />
 
                                 <MudCardActions>
                                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" 
-                                               StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarPrestamo">
+                                                StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarPrestamo">
                                         Registrar Préstamo
                                     </MudButton>
                                 </MudCardActions>
@@ -75,11 +75,12 @@
             @* --- POPOVER DEVOLUCIÓN --- *@
             <MudPopover Open="@_abreDevolucion" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
                 <MudText Typo="Typo.h5" Class="pa-4">Registrar Devolución</MudText>
+
                 <div style="width: 1000px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
                         <MudForm @ref="formularioDevolucion" Spacing="9">
                             <MudSelect T="Operario" Label="Mecánico que devuelve" @bind-Value="operarioDevolucion" 
-                                       Variant="Variant.Outlined" Required="true" Class="mb-4" AnchorOrigin="Origin.BottomCenter">
+                                        Variant="Variant.Outlined" Required="true" Class="mb-4" AnchorOrigin="Origin.BottomCenter">
                                 @foreach (var op in MecanicosConPrestamos)
                                 {
                                     <MudSelectItem Value="@op">@($"{op.Codigo} - {op.Nombre}")</MudSelectItem>
@@ -89,9 +90,9 @@
                             @if (operarioDevolucion != null)
                             {
                                 <MudSelect T="PrestamosDetalle" Label="Herramientas a devolver" Variant="Variant.Outlined" 
-                                           MultiSelection="true" Required="true" Class="mb-4"
-                                           ToStringFunc="@(d => d == null ? "" : ObtenerNombreHerramienta(d.FkIdHerramienta))"
-                                           @bind-SelectedValues="_detallesADevolver">
+                                            MultiSelection="true" Required="true" Class="mb-4"
+                                            ToStringFunc="@(d => d == null ? "" : ObtenerNombreHerramienta(d.FkIdHerramienta))"
+                                            @bind-SelectedValues="_detallesADevolver">
                                     @foreach (var detalle in ObtenerHerramientasPrestadas(operarioDevolucion.Codigo))
                                     {
                                         <MudSelectItem Value="@detalle">@ObtenerNombreHerramienta(detalle.FkIdHerramienta)</MudSelectItem>
@@ -103,7 +104,7 @@
 
                                 <MudCardActions>
                                     <MudButton Variant="Variant.Filled" Color="Color.Success" Class="ml-auto" 
-                                               StartIcon="@Icons.Material.Filled.AssignmentReturn" OnClick="GuardarDevolucion">
+                                                StartIcon="@Icons.Material.Filled.AssignmentReturn" OnClick="GuardarDevolucion">
                                         Procesar Devolución
                                     </MudButton>
                                 </MudCardActions>
@@ -123,7 +124,6 @@
             <Columns>
                 <PropertyColumn Property="x => x.IdPrestamos" Title="ID" />
                 <PropertyColumn Property="x => x.FkCodigoOperario" Title="Operario" />
-                @* Cambio: Mostrar Nombre en lugar de código en la tabla *@
                 <TemplateColumn Title="Mecánico Responsable">
                     <CellTemplate>
                         @ObtenerNombreOperario(context.Item.FkCodigoOperario)
@@ -132,8 +132,9 @@
                 <PropertyColumn Property="x => x.FechaSolicitud" Title="Fecha Solicitud" Format="dd/MM/yyyy" />
                 <TemplateColumn Title="Acciones">
                     <CellTemplate>
-                        <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
-                                   OnClick="@(() => { AbrirDevolucion(); operarioDevolucion = ListaOperarios.FirstOrDefault(o => o.Codigo == context.Item.FkCodigoOperario); })">
+                        <MudButton 
+                                Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
+                                OnClick="@(() => { AbrirDevolucion(); operarioDevolucion = ListaOperarios.FirstOrDefault(o => o.Codigo == context.Item.FkCodigoOperario); })">
                             Devolver
                         </MudButton>
                     </CellTemplate>
@@ -178,22 +179,26 @@
     private IEnumerable<PrestamosDetalle> _detallesADevolver = new HashSet<PrestamosDetalle>();
     private Dictionary<int, HerramientasDetalle> _diccionarioHerramientas = new();
 
-    // FILTRO DE MECÁNICOS: Normaliza para ignorar acentos y mayúsculas
+    private string ObtenerNombreOperario(string codigo) => ListaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
+    private string ObtenerNombreHerramienta(int id) => _diccionarioHerramientas.TryGetValue(id, out var h) ? $"{h.Descripcion} - {h.Etiqueta}" : $"ID: {id}";
+    private List<PrestamosDetalle> ObtenerHerramientasPrestadas(string codigo) => ListaPrestamos.Where(p => p.FkCodigoOperario == codigo).SelectMany(p => p.PrestamosDetalles).Where(d => d.FechaEntrega == null).ToList();
+
     private List<Operario> Mecanicos => ListaOperarios
         .Where(o => o.Seccion != null && 
-               (o.Seccion.Contains("Mecanica", StringComparison.OrdinalIgnoreCase) || 
+                (o.Seccion.Contains("Mecanica", StringComparison.OrdinalIgnoreCase) || 
                 o.Seccion.Contains("Mecánica", StringComparison.OrdinalIgnoreCase)))
         .ToList();
     
     private List<Operario> MecanicosConPrestamos => Mecanicos
-    .Where(m => ListaPrestamos.Any(p => 
-        p.FkCodigoOperario == m.Codigo && 
-        p.PrestamosDetalles.Any(d => d.FechaEntrega == null)))
-    .ToList();
+        .Where(m => ListaPrestamos.Any(p => 
+            p.FkCodigoOperario == m.Codigo && 
+            p.PrestamosDetalles.Any(d => d.FechaEntrega == null)))
+        .ToList();
 
     protected override async Task OnInitializedAsync() => await CargarDatos();
 
-    private async Task CargarDatos() {
+    private async Task CargarDatos() 
+    {
         var t1 = Http.GetFromJsonAsync<List<Prestamo>>("api/prestamos");
         var t2 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
         var t3 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
@@ -205,20 +210,15 @@
         HerramientasDisponibles = ListaTodasHerramientas.Where(h => h.Disponible == true).ToList();
     }
 
-    private string ObtenerNombreOperario(string codigo) => ListaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
-    
-    private string ObtenerNombreHerramienta(int id) => _diccionarioHerramientas.TryGetValue(id, out var h) ? $"{h.Descripcion} - {h.Etiqueta}" : $"ID: {id}";
-
-    private List<PrestamosDetalle> ObtenerHerramientasPrestadas(string codigo) => 
-        ListaPrestamos.Where(p => p.FkCodigoOperario == codigo).SelectMany(p => p.PrestamosDetalles).Where(d => d.FechaEntrega == null).ToList();
-
-    private async Task<bool> ValidarNipEnApi(string codigo, string pin) {
+    private async Task<bool> ValidarNipEnApi(string codigo, string pin) 
+    {
         if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(pin)) return false;
         try { return await Http.GetFromJsonAsync<bool>($"api/nips/validar?operario={codigo}&pin={pin}"); }
         catch { return false; }
     }
 
-    private async Task GuardarPrestamo() {
+    private async Task GuardarPrestamo() 
+    {
         await formularioPrestamo.Validate();
         if (formularioPrestamo.IsValid && _herramientasSeleccionadas.Any()) {
             if (!(await ValidarNipEnApi(operarioSeleccionado.Codigo, nipEncargado))) {
@@ -243,7 +243,8 @@
         }
     }
 
-    private async Task GuardarDevolucion() {
+    private async Task GuardarDevolucion() 
+    {
         await formularioDevolucion.Validate();
         if (formularioDevolucion.IsValid && _detallesADevolver.Any()) {
             if (!(await ValidarNipEnApi(operarioDevolucion.Codigo, nipDevolucion))) {
@@ -278,29 +279,22 @@
 
     private bool _quickFilter(Prestamo x)
     {
-        // 1. Si no hay nada escrito, mostramos todo
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
 
-        // 2. Filtro por Código de Operario (con null-check por seguridad)
         if (x.FkCodigoOperario?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) 
             return true;
 
-        // 3. Filtro por Nombre de Operario (usando tu función existente)
         if (ObtenerNombreOperario(x.FkCodigoOperario).Contains(_searchString, StringComparison.OrdinalIgnoreCase)) 
             return true;
 
-        // 4. Filtro por Fecha (Convertimos la fecha al formato visual dd/MM/yyyy para que coincida con lo que el usuario escribe)
         if (x.FechaSolicitud.ToString("dd/MM/yyyy").Contains(_searchString)) 
             return true;
         
-        // 4. NUEVO: Filtro por Herramientas (Busca en la lista anidada)
-        if (x.PrestamosDetalles != null && x.PrestamosDetalles.Any(d => 
-            ObtenerNombreHerramienta(d.FkIdHerramienta).Contains(_searchString, StringComparison.OrdinalIgnoreCase)))
+        if (x.PrestamosDetalles != null && x.PrestamosDetalles.Any(d => ObtenerNombreHerramienta(d.FkIdHerramienta).Contains(_searchString, StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }
 
-        // Si no coincidió con nada de lo anterior, se oculta
         return false;
     }
 
@@ -308,7 +302,6 @@
     {
         _abrePrestamo = !_abrePrestamo;
         
-        // Si lo estamos cerrando (o incluso al abrir), reseteamos todo
         if (!_abrePrestamo) 
         {
             LimpiarFormulario();
@@ -321,7 +314,6 @@
         
         if (!_abreDevolucion) 
         {
-            // Creamos un método de limpieza específico para devolución
             LimpiarFormularioDevolucion();
         }
     }

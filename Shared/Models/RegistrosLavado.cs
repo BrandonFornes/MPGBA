@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminHerramientas.Shared.Models;
 
-[Table("Registros_lavados")] // Forzamos el nombre exacto de la tabla
+[Table("Registros_lavados")] 
 public partial class RegistrosLavado
 {
     [Key]
@@ -33,7 +33,6 @@ public partial class RegistrosLavado
     [Column("fk_bastidor")]
     public string? FkBastidor { get; set; }
 
-    // Propiedades de Navegación (Esto es lo que hace magia en EF)
     [ForeignKey("FkCodigoOperario")]
     public virtual Operario? OperarioNavigation { get; set; }
 
