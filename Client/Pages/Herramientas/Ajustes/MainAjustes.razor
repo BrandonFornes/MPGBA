@@ -3,6 +3,9 @@
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
 
+@inject ISnackbar Snackbar
+
+
 @using AdminHerramientas.Shared.Models
 
 
@@ -199,24 +202,32 @@
 
     private async Task CargarDatos()
     {
-        DisponibleHerramienta = true;
-        EstadoHerramienta = "Operativa";
-        var task1 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
-        var task2 = Http.GetFromJsonAsync<List<Herramienta>>("api/herramienta");
-
-        await Task.WhenAll(task1, task2);
-
-        Herramientas = await task1 ?? new();
-        TiposHerramientas = await task2 ?? new();
-
-        var dicTipos = TiposHerramientas.ToDictionary(t => t.Id, t => t.Tipo);
-
-        foreach (var h in Herramientas)
+        try 
         {
-            if (dicTipos.TryGetValue(h.FkIdHerramienta ?? 0, out var nombreTipo))
+            DisponibleHerramienta = true;
+            EstadoHerramienta = "Operativa";
+            var task1 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
+            var task2 = Http.GetFromJsonAsync<List<Herramienta>>("api/herramienta");
+
+            await Task.WhenAll(task1, task2);
+
+            Herramientas = await task1 ?? new();
+            TiposHerramientas = await task2 ?? new();
+
+            var dicTipos = TiposHerramientas.ToDictionary(t => t.Id, t => t.Tipo);
+
+            foreach (var h in Herramientas)
             {
-                h.TipoNombre = nombreTipo;
+                if (dicTipos.TryGetValue(h.FkIdHerramienta ?? 0, out var nombreTipo))
+                {
+                    h.TipoNombre = nombreTipo;
+                }
             }
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
         }
     }
 

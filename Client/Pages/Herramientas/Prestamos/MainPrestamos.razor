@@ -199,15 +199,22 @@
 
     private async Task CargarDatos() 
     {
-        var t1 = Http.GetFromJsonAsync<List<Prestamo>>("api/prestamos");
-        var t2 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
-        var t3 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
-        await Task.WhenAll(t1, t2, t3);
-        ListaPrestamos = await t1 ?? new();
-        ListaTodasHerramientas = await t2 ?? new();
-        ListaOperarios = await t3 ?? new();
-        _diccionarioHerramientas = ListaTodasHerramientas.ToDictionary(h => h.Id, h => h);
-        HerramientasDisponibles = ListaTodasHerramientas.Where(h => h.Disponible == true).ToList();
+        try {
+            var t1 = Http.GetFromJsonAsync<List<Prestamo>>("api/prestamos");
+            var t2 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
+            var t3 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
+            await Task.WhenAll(t1, t2, t3);
+            ListaPrestamos = await t1 ?? new();
+            ListaTodasHerramientas = await t2 ?? new();
+            ListaOperarios = await t3 ?? new();
+            _diccionarioHerramientas = ListaTodasHerramientas.ToDictionary(h => h.Id, h => h);
+            HerramientasDisponibles = ListaTodasHerramientas.Where(h => h.Disponible == true).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
+        
     }
 
     private async Task<bool> ValidarNipEnApi(string codigo, string pin) 
