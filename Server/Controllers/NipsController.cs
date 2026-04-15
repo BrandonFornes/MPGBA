@@ -18,7 +18,6 @@ namespace AdminHerramientas.Server.Controllers
             _context = context;
         }
 
-        // GET: api/Nips/validar?operario=OP001&pin=1234
         [HttpGet("validar")]
         public async Task<ActionResult<bool>> ValidarNip(string operario, string pin)
         {
@@ -30,7 +29,6 @@ namespace AdminHerramientas.Server.Controllers
             return Ok(esValido);
         }
 
-        // Otros métodos CRUD estándar si los requieres
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Nip>>> GetNips()
         {
