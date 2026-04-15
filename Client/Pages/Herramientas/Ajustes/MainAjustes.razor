@@ -269,13 +269,9 @@
             if (response.IsSuccessStatusCode)
             {
                 await CargarDatos();
-                DescripcionHerramienta = "";
-                EtiquetaHerramienta = "";
-                EstadoHerramienta = "";
-                _value = null;
-                _abreCrearHerramienta = false;
-                FechaHerramienta = null;
-                selectedItem = null;
+                //limpiarFormulario();
+                AbrirCrearHerramienta();
+
             }
         }
     }
@@ -298,14 +294,14 @@
     private bool _quickFilter(HerramientasDetalle x)
     {
         if (string.IsNullOrWhiteSpace(_searchString))
-             return true;
+            return true;
 
         if (x.Descripcion?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-             return true;
+            return true;
 
         if (x.Etiqueta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-             return true;
-        
+            return true;
+
         if (x.TipoNombre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
 
@@ -317,8 +313,12 @@
 
     public void AbrirCrearHerramienta()
     {
+        Console.WriteLine("Abriendo formulario de creación de herramienta...");
         if (_abreCrearHerramienta)
+        {
             _abreCrearHerramienta = false;
+            limpiarFormulario();
+        }
         else
             _abreCrearHerramienta = true;
     }
@@ -327,10 +327,22 @@
 
     public void AbrirCrearTipo()
     {
+        Console.WriteLine("Abriendo formulario de creación de tipo de herramienta...");
         if (_abreCrearTipo)
             _abreCrearTipo = false;
         else
             _abreCrearTipo = true;
+    }
+    public void limpiarFormulario()
+    {
+        DisponibleHerramienta = true;
+        DescripcionHerramienta = "";
+        EtiquetaHerramienta = "";
+        EstadoHerramienta = "Operativa";
+        _value = null;
+        FechaHerramienta = null;
+        selectedItem = null;
+        
     }
 
     public string Nombre { get; set; }
