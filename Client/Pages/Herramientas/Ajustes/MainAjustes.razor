@@ -49,12 +49,7 @@
                                              ResetValueOnEmptyText="true"
                                              CoerceText="false"
                                              CoerceValue="false" />
-                            @* <MudSelect T="Herramienta" Label="Tipo de Herramienta" @bind-Value="_value" Required="true" RequiredError="Debes seleccionar al menos uno">
-                                @foreach (Herramienta herramienta in TiposHerramientas)
-                                {
-                                    <MudSelectItem Value="@herramienta">@herramienta.Tipo</MudSelectItem>
-                                }
-                            </MudSelect> *@
+                            
                             <MudTextField @bind-Value="DescripcionHerramienta" Label="Nombre/Descripcion de Herramienta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
 
                             <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>

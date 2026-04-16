@@ -69,7 +69,7 @@
                                 <MudCardActions>
                                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto"
                                                StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarPrestamo" Disabled="@_procesando">
-                                                @( _procesando ? "Procesando..." : "Registrar Préstamo" )
+                                                 
                                     </MudButton>
                                 </MudCardActions>
                             }
@@ -144,7 +144,10 @@
                     <CellTemplate>
                         <MudButton 
                                 Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
-                                OnClick="@(() => { AbrirDevolucion(); operarioDevolucion = ListaOperarios.FirstOrDefault(o => o.Codigo == context.Item.FkCodigoOperario); })">
+                                OnClick="@(() => { AbrirDevolucion(); 
+                                                   operarioDevolucion = ListaOperarios.FirstOrDefault(o => o.Codigo == context.Item.FkCodigoOperario);
+                                                    PrestamoSelected = context.Item;
+                                                })">
                             Devolver
                         </MudButton>
                     </CellTemplate>
@@ -189,10 +192,20 @@
     private IEnumerable<HerramientasDetalle> _herramientasSeleccionadas = new HashSet<HerramientasDetalle>();
     private IEnumerable<PrestamosDetalle> _detallesADevolver = new HashSet<PrestamosDetalle>();
     private Dictionary<int, HerramientasDetalle> _diccionarioHerramientas = new();
+    private Prestamo PrestamoSelected { get; set; }
 
     private string ObtenerNombreOperario(string codigo) => ListaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
     private string ObtenerNombreHerramienta(int id) => _diccionarioHerramientas.TryGetValue(id, out var h) ? $"{h.Descripcion} - {h.Etiqueta}" : $"ID: {id}";
-    private List<PrestamosDetalle> ObtenerHerramientasPrestadas(string codigo) => ListaPrestamos.Where(p => p.FkCodigoOperario == codigo).SelectMany(p => p.PrestamosDetalles).Where(d => d.FechaEntrega == null).ToList();
+    private List<PrestamosDetalle> ObtenerHerramientasPrestadas(string codigo)
+    {
+        if (PrestamoSelected != null && PrestamoSelected.FkCodigoOperario == codigo)
+        {
+            return PrestamoSelected.PrestamosDetalles.Where(d => d.FechaEntrega == null).ToList();
+        }
+        else
+            return ListaPrestamos.Where(p => p.FkCodigoOperario == codigo).SelectMany(p => p.PrestamosDetalles).Where(d => d.FechaEntrega == null).ToList();
+
+    }
 
     private List<Operario> Mecanicos => ListaOperarios
         .Where(o => o.Seccion != null && 
@@ -267,7 +280,7 @@
                 if ((await Http.PostAsJsonAsync("api/prestamos", p)).IsSuccessStatusCode)
                 {
                     Snackbar.Add("Préstamo registrado.", Severity.Success);
-                    _abrePrestamo = false;
+                    AbrirPrestamo();
                     LimpiarFormulario();
                     await CargarDatos();
                 }
@@ -281,18 +294,29 @@
 
     private async Task GuardarDevolucion() 
     {
+        if (_procesando) return;
         await formularioDevolucion.Validate();
         if (formularioDevolucion.IsValid && _detallesADevolver.Any()) {
-            if (!(await ValidarNipEnApi(operarioDevolucion.Codigo, nipDevolucion))) {
-                Snackbar.Add("NIP de devolución incorrecto.", Severity.Error);
-                return;
+            _procesando = true;
+            try
+            {
+                if (!(await ValidarNipEnApi(operarioDevolucion.Codigo, nipDevolucion))) {
+                    Snackbar.Add("NIP de devolución incorrecto.", Severity.Error);
+                    return;
+                }
+                var lista = _detallesADevolver.ToList();
+                lista.ForEach(d => { d.FechaEntrega = DateTime.Now; d.Comentario = comentarioDevolucion; d.FechaModificacion = DateTime.Now; });
+                if ((await Http.PutAsJsonAsync("api/prestamos/devolver", lista)).IsSuccessStatusCode) {
+                    Snackbar.Add("Herramientas devueltas.", Severity.Success);
+                    AbrirDevolucion();
+                    await CargarDatos();
+                }
             }
-            var lista = _detallesADevolver.ToList();
-            lista.ForEach(d => { d.FechaEntrega = DateTime.Now; d.Comentario = comentarioDevolucion; d.FechaModificacion = DateTime.Now; });
-            if ((await Http.PutAsJsonAsync("api/prestamos/devolver", lista)).IsSuccessStatusCode) {
-                Snackbar.Add("Herramientas devueltas.", Severity.Success);
-                _abreDevolucion = false; await CargarDatos();
+            finally
+            {
+                _procesando = false;
             }
+
         }
     }
 
@@ -308,6 +332,7 @@
     private void LimpiarFormularioDevolucion()
     {
         operarioDevolucion = null;
+        PrestamoSelected = null;
         comentarioDevolucion = string.Empty;
         nipDevolucion = string.Empty;
         _detallesADevolver = new HashSet<PrestamosDetalle>();
