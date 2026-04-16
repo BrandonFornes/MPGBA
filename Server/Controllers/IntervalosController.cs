@@ -21,5 +21,23 @@ namespace AdminHerramientas.Server.Controllers
         {
             return await _context.Intervalos.AsNoTracking().ToListAsync();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearIntervalo(Intervalo intervalo)
+        {
+            _context.Intervalos.Add(intervalo);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarIntervalo(int id, Intervalo intervalo)
+        {
+            if (id != intervalo.Id) return BadRequest();
+
+            _context.Entry(intervalo).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

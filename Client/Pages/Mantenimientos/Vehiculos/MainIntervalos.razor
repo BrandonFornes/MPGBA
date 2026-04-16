@@ -1,0 +1,218 @@
+@page "/mantenimientos/intervalos"
+
+@using MudBlazor
+@using System.Globalization
+@using AdminHerramientas.Shared.Models
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<PageTitle>Configuración de Intervalos</PageTitle>
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">
+            Intervalos de Mantenimiento
+        </MudText>
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled"
+                        Size="Size.Large"
+                        Color="Color.Tertiary"
+                        Class="mr-3"
+                        OnClick="@AbrirCrearIntervalo">
+                Nuevo Intervalo
+            </MudButton>
+
+            @*Overlay de Crear/Editar Tarea*@
+            <MudOverlay Visible="_abreCrearIntervalo" OnClick="@AbrirCrearIntervalo" DarkBackground="true" ZIndex="5" />
+
+            @*Popover para el formulario*@
+            <MudPopover Open="@_abreCrearIntervalo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    @(selectedItem == null ? "Registrar Nuevo Intervalo" : "Editar Intervalo")
+                </MudText>
+
+                <div style="width: 600px; height: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                            
+                            <MudTextField @bind-Value="marcaVehiculo" 
+                                            Label="Nombre de la Marca" 
+                                            Variant="Variant.Outlined" 
+                                            Required="true" 
+                                            RequiredError="La marca es obligatoria" />
+
+                            <MudNumericField @bind-Value="intervaloDias" 
+                                            Label="Intervalo para Mantenimiento" 
+                                            Variant="Variant.Outlined" 
+                                            Required="true" 
+                                            RequiredError="El intervalo es obligatorio" />
+                            
+
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" 
+                                            Color="Color.Primary" 
+                                            Class="ml-auto" 
+                                            OnClick="GuardarIntervalo">
+                                    @(selectedItem == null ? "GUARDAR" : "ACTUALIZAR")
+                                </MudButton>
+                            </MudCardActions>
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+        </MudPaper>
+
+        @*Tabla de Datos*@
+        <MudDataGrid T="Intervalo"
+                        Items="@listaIntervalos"
+                        Filterable="true"
+                        Sortable="true"
+                        QuickFilter="@_quickFilter"
+                        @bind-SelectedItem="selectedItem">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Intervalos Registrados</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString"
+                                Placeholder="Buscar..."
+                                Adornment="Adornment.Start"
+                                Immediate="true"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                IconSize="Size.Medium"
+                                Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                <PropertyColumn Property="x => x.marcavehiculo" Title="Marca" />
+                <PropertyColumn Property="x => x.Intervalo_dias" Title="Intervalo" />
+                <TemplateColumn Title="Acciones">
+                    <CellTemplate>
+                        <MudButton
+                            Color="Color.Warning" 
+                            Size="Size.Small" 
+                            OnClick="@(() => EditarIntervalo(context.Item))">
+                            <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="Tarea" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string _searchString;
+    private Intervalo selectedItem;
+    private List<Intervalo> listaIntervalos = new();
+    private MudForm formulario;
+    public bool _abreCrearIntervalo;
+
+    private string marcaVehiculo;
+    private int intervaloDias;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try 
+        {
+            listaIntervalos = await Http.GetFromJsonAsync<List<Intervalo>>("api/intervalos") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
+    }
+
+    protected async Task GuardarIntervalo()
+    {
+        await formulario.Validate();
+
+        if (formulario.IsValid)
+        {
+            if (intervaloDias <= 0)
+            {
+                Snackbar.Add("Error el intervalo debe ser mayor a 0", Severity.Error);
+                return;
+            }
+            
+            Intervalo intervaloAGuardar = new Intervalo
+            {
+                Id = selectedItem?.Id ?? 0,
+                marcavehiculo = marcaVehiculo,
+                Intervalo_dias = intervaloDias,
+                FechaModificacion = DateTime.Now,
+                UsuarioModifico = 1,
+                Activo = true
+            };
+
+            HttpResponseMessage response;
+            
+            if (selectedItem == null)
+            {
+                response = await Http.PostAsJsonAsync("api/intervalos", intervaloAGuardar);
+            }
+            else
+            {
+                response = await Http.PutAsJsonAsync($"api/intervalos/{intervaloAGuardar.Id}", intervaloAGuardar);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add(selectedItem == null ? "Intervalo creada" : "Intervalo actualizado", Severity.Success);
+                await CargarDatos();
+                LimpiarFormulario();
+                _abreCrearIntervalo = false;
+            }
+            else
+            {
+                Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+            }
+        }
+    }
+
+
+    private void EditarIntervalo(Intervalo intervalo)
+    {
+        selectedItem = intervalo;
+        marcaVehiculo = intervalo.marcavehiculo;
+        intervaloDias = intervalo.Intervalo_dias;
+
+        _abreCrearIntervalo = true;
+    }
+
+    private void LimpiarFormulario()
+    {
+        selectedItem = null;
+        marcaVehiculo = string.Empty;
+        intervaloDias = 0;
+    }
+
+    private bool _quickFilter(Intervalo x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        return x.marcavehiculo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    public void AbrirCrearIntervalo() 
+    {
+        if (!_abreCrearIntervalo) LimpiarFormulario(); 
+        _abreCrearIntervalo = !_abreCrearIntervalo;
+    }
+}
