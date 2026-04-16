@@ -418,11 +418,9 @@
 
     private async Task<IEnumerable<Vehiculo>> SearchVehiculos(string value)
     {
-        // Si no hay texto, devolvemos la lista completa
         if (string.IsNullOrEmpty(value))
             return listaVehiculos;
 
-        // Buscamos coincidencia en ID, Marca o Modelo
         return listaVehiculos.Where(x => 
             x.Idv.ToString().Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
             x.DesMarca.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
