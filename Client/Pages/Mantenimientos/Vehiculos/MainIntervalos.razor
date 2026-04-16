@@ -105,7 +105,7 @@
             </Columns>
 
             <PagerContent>
-                <MudDataGridPager T="Tarea" />
+                <MudDataGridPager T="Intervalo" />
             </PagerContent>
 
         </MudDataGrid>
@@ -175,7 +175,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add(selectedItem == null ? "Intervalo creada" : "Intervalo actualizado", Severity.Success);
+                Snackbar.Add(selectedItem == null ? "Intervalo creado" : "Intervalo actualizado", Severity.Success);
                 await CargarDatos();
                 LimpiarFormulario();
                 _abreCrearIntervalo = false;

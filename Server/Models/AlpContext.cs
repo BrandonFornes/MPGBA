@@ -164,6 +164,11 @@ public partial class AlpContext : DbContext
             entity.Property(e => e.Activo)
                 .HasColumnName("Activo")
                 .IsRequired();
+
+            entity.HasOne<Operario>()       // Un Nip tiene un Operario
+                .WithOne(p => p.Nip)        // Un Operario tiene un solo Nip
+                .HasForeignKey<Nip>(d => d.Fk_codigoOperario) // La llave está en Nips
+                .HasPrincipalKey<Operario>(p => p.Codigo);
         });
 
         modelBuilder.Entity<Operario>(entity =>
