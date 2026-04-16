@@ -34,5 +34,23 @@ namespace AdminHerramientas.Server.Controllers
         {
             return await _context.Nips.AsNoTracking().ToListAsync();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearNip(Nip nip)
+        {
+            _context.Nips.Add(nip);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarNip(int id, Nip nip)
+        {
+            if (id != nip.Id) return BadRequest();
+
+            _context.Entry(nip).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
