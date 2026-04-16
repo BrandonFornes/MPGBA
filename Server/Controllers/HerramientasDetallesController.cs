@@ -50,6 +50,20 @@ namespace AdminHerramientas.Server.Controllers
 
             return Ok();
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteHerramientasDetalle(int id)
+        {
+            var herramienta = await _context.HerramientasDetalles.FindAsync(id);
+
+            if (herramienta == null)
+            {
+                return NotFound("La herramienta no fue encontrada.");
+            }
+            herramienta.Activo = false;
+            _context.Entry(herramienta).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return Ok("La herramienta ha sido eliminada.");
+        }
     }
 
 }

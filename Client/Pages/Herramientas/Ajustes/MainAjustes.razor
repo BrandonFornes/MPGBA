@@ -42,7 +42,7 @@
             <MudPopover Open="@_abreCrearHerramienta" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
 
                 <MudText Typo="Typo.h5" Class="pa-4">
-                    @(selectedItem == null ? "Crear Herramienta" : "Editar Herramienta")
+                    @($"{_modoActual} Herramienta")
                 </MudText>
 
                 <div style="width: 1000px; height: auto;" class="pa-5">
@@ -75,7 +75,7 @@
 
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarHerramienta">
-                                    @(selectedItem == null ? "CREAR" : "EDITAR")
+                                    @($"{_modoActual} Herramienta")
                                 </MudButton>
                             </MudCardActions>
 
@@ -148,13 +148,8 @@
                 </TemplateColumn>
                 <TemplateColumn Title="Acciones">
                     <CellTemplate>
-                        <MudButton Variant="Variant.Filled"
-                                    Color="Color.Warning"
-                                    Size="Size.Small"
-                                    OnClick="@(() => EditarHerramienta(context.Item))">
-                            <MudIcon Icon="@Icons.Material.Filled.Edit"/>
-                            
-                        </MudButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => EditarHerramienta(context.Item))"></MudIconButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => EliminarHerramienta(context.Item))"></MudIconButton>
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -191,6 +186,7 @@
     MudForm formulario2;
 
     private string _searchString;
+    private string _modoActual = "Crear";
     private HerramientasDetalle selectedItem;
     private List<HerramientasDetalle> Herramientas = new();
     private List<Herramienta> TiposHerramientas = new();
@@ -275,18 +271,21 @@
                     Activo = true
                 };
             HttpResponseMessage response;
-            if (selectedItem == null)
+            if (_modoActual == "Crear")
             {
                 response = await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
             }
-            else
+            else if (_modoActual == "Editar")
             {
                 response = await Http.PutAsJsonAsync($"api/herramientasdetalles/{herramientasDetalle.Id}", herramientasDetalle);
+            }
+            else
+            {
+                response = await Http.DeleteAsync($"api/herramientasdetalles/{herramientasDetalle.Id}");
             }
             if (response.IsSuccessStatusCode)
             {
                 await CargarDatos();
-                //limpiarFormulario();
                 AbrirCrearHerramienta();
 
             }
@@ -295,7 +294,8 @@
     private void EditarHerramienta(HerramientasDetalle herramienta)
     {
         selectedItem = herramienta ; 
-        _abreCrearHerramienta = true;
+        _modoActual = "Editar";
+        AbrirCrearHerramienta();
 
         DescripcionHerramienta = herramienta.Descripcion;
         EtiquetaHerramienta = herramienta.Etiqueta;
@@ -303,6 +303,19 @@
         DisponibleHerramienta = herramienta.Disponible ?? true;
         EstadoHerramienta = herramienta.Estado;
 
+        _value = TiposHerramientas.FirstOrDefault(t => t.Id == herramienta.FkIdHerramienta);
+    }
+    private void EliminarHerramienta(HerramientasDetalle herramienta)
+    {
+        selectedItem = herramienta;
+        _modoActual = "Eliminar";
+        AbrirCrearHerramienta();
+
+        DescripcionHerramienta = herramienta.Descripcion;
+        EtiquetaHerramienta = herramienta.Etiqueta;
+        FechaHerramienta = herramienta.FechaCompra;
+        DisponibleHerramienta = herramienta.Disponible ?? true;
+        EstadoHerramienta = herramienta.Estado;
         _value = TiposHerramientas.FirstOrDefault(t => t.Id == herramienta.FkIdHerramienta);
     }
 
@@ -348,6 +361,7 @@
     }
     public void limpiarFormulario()
     {
+        _modoActual = "Crear";
         DisponibleHerramienta = true;
         DescripcionHerramienta = "";
         EtiquetaHerramienta = "";
