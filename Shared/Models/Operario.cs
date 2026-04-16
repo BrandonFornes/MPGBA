@@ -19,7 +19,7 @@ public partial class Operario
 
     public int UsuarioModifico { get; set; }
 
-    public virtual ICollection<Nip> Nips { get; } = new List<Nip>();
+    public virtual Nip? Nip { get; set; }
 
     public virtual ICollection<Prestamo> PrestamoFkCodigoEncargadoNavigations { get; } = new List<Prestamo>();
 

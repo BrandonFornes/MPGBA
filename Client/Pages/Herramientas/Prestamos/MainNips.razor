@@ -1,0 +1,180 @@
+@page "/herramientas/nips"
+@using MudBlazor
+@using System.Globalization
+@using AdminHerramientas.Shared.Models
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<PageTitle>Configuración de Nips</PageTitle>
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">Nips de Operarios</MudText>
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3" OnClick="@AbrirCrearNip">
+                Nuevo Nip
+            </MudButton>
+
+            <MudOverlay Visible="_abreCrearNip" OnClick="@AbrirCrearNip" DarkBackground="true" ZIndex="5" />
+
+            <MudPopover Open="@_abreCrearNip" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    @(selectedItem == null ? "Registrar Nuevo Nip" : "Editar Nip")
+                </MudText>
+
+                <div style="width: 600px; height: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                            
+                            @* CAMBIO: Ahora es un Select con búsqueda *@
+                            <MudSelect T="Operario" Label="Seleccionar Operario" @bind-Value="operarioSeleccionado" 
+                                       Variant="Variant.Outlined" Required="true" RequiredError="Debe elegir un operario"
+                                       AnchorOrigin="Origin.BottomCenter" Class="mb-4" Searchable="true">
+                                @foreach (var op in listaOperarios)
+                                {
+                                    <MudSelectItem Value="@op">@($"{op.Codigo} - {op.Nombre}")</MudSelectItem>
+                                }
+                            </MudSelect>
+                            
+                            <MudTextField @bind-Value="nipOperario" Label="NIP de Acceso" Variant="Variant.Outlined" 
+                                          Required="true" RequiredError="El nip es obligatorio" 
+                                          InputType="InputType.Password" MaxLength="10" />
+
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarNip">
+                                    @(selectedItem == null ? "GUARDAR" : "ACTUALIZAR")
+                                </MudButton>
+                            </MudCardActions>
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+        </MudPaper>
+
+        <MudDataGrid T="Nip" Items="@listaNips" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Nips Registrados</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString" Placeholder="Buscar por nombre o código..." 
+                              Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" />
+                @* Mostramos el nombre real del operario *@
+                <TemplateColumn Title="Operario">
+                    <CellTemplate>
+                        @ObtenerNombreOperario(context.Item.Fk_codigoOperario)
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.ValorNip" Title="Nip (Cifrado)" />
+                <TemplateColumn Title="Acciones">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" 
+                                       OnClick="@(() => EditarNip(context.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+
+            <PagerContent>
+                @* CORRECCIÓN: El tipo debe ser Nip, no Tarea *@
+                <MudDataGridPager T="Nip" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string _searchString;
+    private Nip? selectedItem;
+    private List<Nip> listaNips = new();
+    private List<Operario> listaOperarios = new(); // Nueva lista
+    private Operario? operarioSeleccionado; // Para el bind del MudSelect
+    private MudForm formulario;
+    public bool _abreCrearNip;
+    private string nipOperario;
+
+    protected override async Task OnInitializedAsync() => await CargarDatos();
+
+    private async Task CargarDatos()
+    {
+        try 
+        {
+            // Cargamos ambas listas al mismo tiempo para que sea rápido
+            var t1 = Http.GetFromJsonAsync<List<Nip>>("api/nips");
+            var t2 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
+            await Task.WhenAll(t1, t2);
+
+            listaNips = await t1 ?? new();
+            listaOperarios = await t2 ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
+    }
+
+    private string ObtenerNombreOperario(string codigo) => 
+        listaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
+
+    protected async Task GuardarNip()
+    {
+        await formulario.Validate();
+        if (formulario.IsValid && operarioSeleccionado != null)
+        {
+            Nip nipAGuardar = new Nip
+            {
+                Id = selectedItem?.Id ?? 0,
+                Fk_codigoOperario = operarioSeleccionado.Codigo,
+                ValorNip = nipOperario,
+                FechaModificacion = DateTime.Now,
+                UsuarioModifico = 1,
+                Activo = true
+            };
+
+            HttpResponseMessage response = (selectedItem == null) 
+                ? await Http.PostAsJsonAsync("api/nips", nipAGuardar)
+                : await Http.PutAsJsonAsync($"api/nips/{nipAGuardar.Id}", nipAGuardar);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add(selectedItem == null ? "Nip creado" : "Nip actualizado", Severity.Success);
+                await CargarDatos();
+                _abreCrearNip = false;
+                LimpiarFormulario();
+            }
+        }
+    }
+
+    private void EditarNip(Nip nip)
+    {
+        selectedItem = nip;
+        operarioSeleccionado = listaOperarios.FirstOrDefault(o => o.Codigo == nip.Fk_codigoOperario);
+        nipOperario = nip.ValorNip;
+        _abreCrearNip = true;
+    }
+
+    private void LimpiarFormulario()
+    {
+        selectedItem = null;
+        operarioSeleccionado = null;
+        nipOperario = string.Empty;
+    }
+
+    private bool _quickFilter(Nip x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        string nombre = ObtenerNombreOperario(x.Fk_codigoOperario);
+        return x.Fk_codigoOperario.Contains(_searchString, StringComparison.OrdinalIgnoreCase) || 
+               nombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void AbrirCrearNip() 
+    {
+        if (!_abreCrearNip) LimpiarFormulario(); 
+        _abreCrearNip = !_abreCrearNip;
+    }
+}
