@@ -52,6 +52,7 @@
                                             Culture="@_mexico"
                                             Required="true" 
                                             RequiredError="La comisión es obligatoria" />
+                            
 
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" 
@@ -69,6 +70,7 @@
 
         </MudPaper>
 
+        @*Tabla de Datos*@
         <MudDataGrid T="Tarea"
                         Items="@listaTareas"
                         Filterable="true"
@@ -151,6 +153,12 @@
 
         if (formulario.IsValid)
         {
+            if (comisionTarea <= 0)
+            {
+                Snackbar.Add("Error la comisión debe ser mayor a 0", Severity.Error);
+                return;
+            }
+
             Tarea tareaAGuardar = new Tarea
             {
                 Id = selectedItem?.Id ?? 0,
@@ -186,11 +194,13 @@
         }
     }
 
+
     private void EditarTarea(Tarea tarea)
     {
         selectedItem = tarea;
         nombreTarea = tarea.NombreTarea;
         comisionTarea = tarea.ComisionTarea;
+
         _abreCrearTarea = true;
     }
 
