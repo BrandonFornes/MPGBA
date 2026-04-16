@@ -56,8 +56,9 @@
                                 <MudButton Variant="Variant.Filled" 
                                             Color="Color.Primary" 
                                             Class="ml-auto" 
-                                            OnClick="GuardarIntervalo">
-                                    @(selectedItem == null ? "GUARDAR" : "ACTUALIZAR")
+                                            OnClick="GuardarIntervalo"
+                                            Disabled="@_procesando">
+                                    @( _procesando ? "Procesando..." : (selectedItem == null ? "Guardar" : "Actualizar" ) )
                                 </MudButton>
                             </MudCardActions>
 
@@ -89,10 +90,10 @@
             </ToolBarContent>
 
             <Columns>
-                <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
-                <PropertyColumn Property="x => x.marcavehiculo" Title="Marca" />
-                <PropertyColumn Property="x => x.Intervalo_dias" Title="Intervalo" />
-                <TemplateColumn Title="Acciones">
+                <PropertyColumn Property="x => x.Id" Title="ID" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.marcavehiculo" Title="Marca" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.Intervalo_dias" Title="Intervalo" Sortable="false" Filterable="false" />
+                <TemplateColumn Title="Acciones" Sortable="false" Filterable="false">
                     <CellTemplate>
                         <MudButton
                             Color="Color.Warning" 
@@ -105,7 +106,10 @@
             </Columns>
 
             <PagerContent>
-                <MudDataGridPager T="Intervalo" />
+                <MudDataGridPager T="Intervalo" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
             </PagerContent>
 
         </MudDataGrid>
@@ -122,6 +126,8 @@
 
     private string marcaVehiculo;
     private int intervaloDias;
+
+    private bool _procesando = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,47 +148,59 @@
 
     protected async Task GuardarIntervalo()
     {
+        if (_procesando) return;
+
         await formulario.Validate();
 
         if (formulario.IsValid)
         {
-            if (intervaloDias <= 0)
-            {
-                Snackbar.Add("Error el intervalo debe ser mayor a 0", Severity.Error);
-                return;
-            }
-            
-            Intervalo intervaloAGuardar = new Intervalo
-            {
-                Id = selectedItem?.Id ?? 0,
-                marcavehiculo = marcaVehiculo,
-                Intervalo_dias = intervaloDias,
-                FechaModificacion = DateTime.Now,
-                UsuarioModifico = 1,
-                Activo = true
-            };
+            _procesando = true;
 
-            HttpResponseMessage response;
-            
-            if (selectedItem == null)
+            try
             {
-                response = await Http.PostAsJsonAsync("api/intervalos", intervaloAGuardar);
-            }
-            else
-            {
-                response = await Http.PutAsJsonAsync($"api/intervalos/{intervaloAGuardar.Id}", intervaloAGuardar);
-            }
+                if (intervaloDias <= 0)
+                {
+                    Snackbar.Add("Error el intervalo debe ser mayor a 0", Severity.Error);
+                    return;
+                }
+                
+                Intervalo intervaloAGuardar = new Intervalo
+                {
+                    Id = selectedItem?.Id ?? 0,
+                    marcavehiculo = marcaVehiculo,
+                    Intervalo_dias = intervaloDias,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 1,
+                    Activo = true
+                };
 
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add(selectedItem == null ? "Intervalo creado" : "Intervalo actualizado", Severity.Success);
-                await CargarDatos();
-                LimpiarFormulario();
-                _abreCrearIntervalo = false;
+                HttpResponseMessage response;
+                
+                if (selectedItem == null)
+                {
+                    response = await Http.PostAsJsonAsync("api/intervalos", intervaloAGuardar);
+                }
+                else
+                {
+                    response = await Http.PutAsJsonAsync($"api/intervalos/{intervaloAGuardar.Id}", intervaloAGuardar);
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add(selectedItem == null ? "Intervalo creado" : "Intervalo actualizado", Severity.Success);
+                    await CargarDatos();
+                    LimpiarFormulario();
+                    _abreCrearIntervalo = false;
+                }
+                else
+                {
+                    Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+                }
+
             }
-            else
+            finally
             {
-                Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+                _procesando = false;
             }
         }
     }

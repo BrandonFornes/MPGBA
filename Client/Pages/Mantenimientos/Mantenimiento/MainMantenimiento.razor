@@ -27,27 +27,40 @@
                     <MudForm @ref="formulario">
                         <MudGrid>
                             <MudItem xs="12">
-                                <MudSelect T="Vehiculo" Label="Vehículo" @bind-Value="vehiculoSeleccionado" Variant="Variant.Outlined" Required="true" Searchable="true">
-                                    @foreach (var v in listaVehiculos)
-                                    {
-                                        <MudSelectItem Value="@v">@v.Bastidor - @v.DesMarca @v.DesModelo</MudSelectItem>
-                                    }
-                                </MudSelect>
+                                <MudAutocomplete T="Vehiculo" 
+                                    Label="Vehículo" 
+                                    @bind-Value="vehiculoSeleccionado" 
+                                    SearchFunc="@SearchVehiculos"
+                                    ToStringFunc="@(v => v == null ? null : $"{v.Idv} - {v.DesMarca} {v.DesModelo}")"
+                                    Variant="Variant.Outlined" 
+                                    Required="true" 
+                                    Class="mb-4"
+                                    ResetValueOnEmptyText="true"
+                                    CoerceText="false" 
+                                    CoerceValue="false" />
                             </MudItem>
                             <MudItem xs="6">
-                                <MudSelect T="Concesionario" Label="Agencia" @bind-Value="concesionarioSeleccionado" Variant="Variant.Outlined" Required="true">
-                                    @foreach (var c in listaConcesionarios)
-                                    {
-                                        <MudSelectItem Value="@c">@c.Nombre</MudSelectItem>
-                                    }
-                                </MudSelect>
+                                
+                                <MudAutocomplete T="Concesionario" 
+                                    Label="Agencia" 
+                                    @bind-Value="concesionarioSeleccionado" 
+                                    SearchFunc="@SearchConcesionario"
+                                    ToStringFunc="@(c => c == null ? null : $"{c.Nombre}")"
+                                    Variant="Variant.Outlined" 
+                                    Required="true" 
+                                    Class="mb-4"
+                                    ResetValueOnEmptyText="true"
+                                    CoerceText="false" 
+                                    CoerceValue="false" />
                             </MudItem>
                             <MudItem xs="6">
                                 <MudDatePicker Label="Fecha" @bind-Date="fechaSeleccionada" Variant="Variant.Outlined" Required="true" />
                             </MudItem>
                         </MudGrid>
                         <MudCardActions>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarMantenimiento">Guardar</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarMantenimiento" Disabled="@_procesando" >
+                                @( _procesando ? "Procesando..." : "Guardar" )
+                            </MudButton>
                         </MudCardActions>
                     </MudForm>
                 </div>
@@ -99,12 +112,12 @@
                         AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
             </ToolBarContent>
             <Columns>
-                <PropertyColumn Property="x => x.Id" Title="Folio" />
-                <TemplateColumn Title="Vehículo">
+                <PropertyColumn Property="x => x.Id" Title="Folio" Sortable="false" Filterable="false" />
+                <TemplateColumn Title="Vehículo" Sortable="false" Filterable="false">
                     <CellTemplate>@ObtenerInfoVehiculo(context.Item.FkBastidor)</CellTemplate>
                 </TemplateColumn>
-                <PropertyColumn Property="x => x.fechaMantenimiento" Title="Último Servicio" Format="dd/MM/yyyy" />
-                <TemplateColumn Title="Próximo Servicio (Tentativo)">
+                <PropertyColumn Property="x => x.fechaMantenimiento" Title="Último Servicio" Format="dd/MM/yyyy" Sortable="false" Filterable="false" />
+                <TemplateColumn Title="Próximo Servicio (Tentativo)" Sortable="false" Filterable="false">
                     <CellTemplate>
                         @{
                             int diasConfigurados = ObtenerDiasDeIntervalo(context.Item.FkBastidor);
@@ -117,7 +130,7 @@
                     </CellTemplate>
                 </TemplateColumn>
                             
-                <TemplateColumn Title="Estado">
+                <TemplateColumn Title="Estado" Sortable="false" Filterable="false">
                     <CellTemplate>
                         @{
                             int diasConfigurados = ObtenerDiasDeIntervalo(context.Item.FkBastidor);
@@ -148,7 +161,7 @@
                     </CellTemplate>
                 </TemplateColumn>
 
-                <TemplateColumn Title="Acciones">
+                <TemplateColumn Title="Acciones" Sortable="false" Filterable="false">
                     <CellTemplate>
                         <MudStack Row="true">
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => EditarRegistro(context.Item))" />
@@ -158,7 +171,10 @@
                 </TemplateColumn>
             </Columns>
             <PagerContent>
-                <MudDataGridPager T="HistorialMantenimiento" />
+                <MudDataGridPager T="HistorialMantenimiento" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
             </PagerContent>
         </MudDataGrid>
     </MudItem>
@@ -188,22 +204,33 @@
     private bool _abreCrearMantenimiento;
     private bool _verHistorialDetalle;
     private string bastidorSeleccionadoDetalle = "";
+
+    private bool _procesando = false;
+
     private List<HistorialMantenimiento> historialFiltrado = new();
 
     protected override async Task OnInitializedAsync() => await CargarDatos();
 
     private async Task CargarDatos() 
     {
-        var t1 = Http.GetFromJsonAsync<List<HistorialMantenimiento>>("api/historialmantenimientos");
-        var t2 = Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos");
-        var t3 = Http.GetFromJsonAsync<List<Concesionario>>("api/concesionarios");
-        var t4 = Http.GetFromJsonAsync<List<Intervalo>>("api/intervalos");
 
-        await Task.WhenAll(t1, t2, t3, t4);
-        listaHistorial = await t1 ?? new();
-        listaVehiculos = await t2 ?? new();
-        listaConcesionarios = await t3 ?? new();
-        listaIntervalos = await t4 ?? new();
+        try 
+        {
+            var t1 = Http.GetFromJsonAsync<List<HistorialMantenimiento>>("api/historialmantenimientos");
+            var t2 = Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos");
+            var t3 = Http.GetFromJsonAsync<List<Concesionario>>("api/concesionarios");
+            var t4 = Http.GetFromJsonAsync<List<Intervalo>>("api/intervalos");
+
+            await Task.WhenAll(t1, t2, t3, t4);
+            listaHistorial = await t1 ?? new();
+            listaVehiculos = await t2 ?? new();
+            listaConcesionarios = await t3 ?? new();
+            listaIntervalos = await t4 ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
     }
 
     private int ObtenerDiasDeIntervalo(string bastidor)
@@ -225,23 +252,38 @@
 
     private async Task GuardarMantenimiento() 
     {
+        if (_procesando) return;
+
         await formulario.Validate();
         if (formulario.IsValid) {
-            var registro = new HistorialMantenimiento {
-                Id = selectedItem?.Id ?? 0,
-                FkBastidor = vehiculoSeleccionado.Bastidor,
-                IdConcesionario = concesionarioSeleccionado.Id,
-                fechaMantenimiento = fechaSeleccionada ?? DateTime.Now,
-                FechaModificacion = DateTime.Now,
-                UsuarioModifico = 1,
-                Activo = true
-            };
-            var res = selectedItem == null ? await Http.PostAsJsonAsync("api/historialmantenimientos", registro) : await Http.PutAsJsonAsync($"api/historialmantenimientos/{registro.Id}", registro);
-            if (res.IsSuccessStatusCode) {
-                await CargarDatos();
-                _abreCrearMantenimiento = false;
-                LimpiarForm();
-                Snackbar.Add("Guardado", Severity.Success);
+            _procesando = true;
+
+            try
+            {
+                var registro = new HistorialMantenimiento {
+                    Id = selectedItem?.Id ?? 0,
+                    FkBastidor = vehiculoSeleccionado.Bastidor,
+                    IdConcesionario = concesionarioSeleccionado.Id,
+                    fechaMantenimiento = fechaSeleccionada ?? DateTime.Now,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 1,
+                    Activo = true
+                };
+                var res = selectedItem == null ? await Http.PostAsJsonAsync("api/historialmantenimientos", registro) : await Http.PutAsJsonAsync($"api/historialmantenimientos/{registro.Id}", registro);
+                if (res.IsSuccessStatusCode) {
+                    await CargarDatos();
+                    _abreCrearMantenimiento = false;
+                    LimpiarForm();
+                    Snackbar.Add("Guardado", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+                }
+            }
+            finally
+            {
+                _procesando = false;
             }
         }
     }
@@ -296,6 +338,26 @@
                 fechaProx.Contains(_searchString) ||
                 estado.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
     }
+
+    private async Task<IEnumerable<Vehiculo>> SearchVehiculos(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return listaVehiculos;
+
+        return listaVehiculos.Where(x => 
+            x.Idv.ToString().Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            x.DesMarca.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            x.DesModelo.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<Concesionario>> SearchConcesionario(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return listaConcesionarios;
+
+        return listaConcesionarios.Where(x => x.Nombre.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
 
     private string ObtenerInfoVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor) is var v && v != null ? $"{v.DesMarca} {v.DesModelo}" : bastidor;
     private string ObtenerNombreConcesionario(int id) => listaConcesionarios.FirstOrDefault(c => c.Id == id)?.Nombre ?? "Desconocido";

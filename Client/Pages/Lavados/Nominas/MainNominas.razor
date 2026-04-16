@@ -77,8 +77,8 @@
                         <MudDatePicker Label="Fecha del Servicio" @bind-Date="fechaSeleccionada" Variant="Variant.Outlined" Required="true" Class="mb-4" />
 
                         <MudCardActions>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarLavado">
-                                @(selectedItem == null ? "Registrar" : "Actualizar")
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarLavado" Disabled="@_procesando">
+                                @( _procesando ? "Procesando..." : (selectedItem == null ? "Registrar" : "Actualizar" ) )
                             </MudButton>
                         </MudCardActions>
                     </MudForm>
@@ -94,7 +94,7 @@
                             <MudItem xs="12" sm="6">
                                 <MudAutocomplete T="Operario" 
                                     Label="Seleccionar Operario" 
-                                    @bind-Value="operarioSeleccionado" 
+                                    @bind-Value="operarioFiltroNomina" 
                                     SearchFunc="@SearchLavadores"
                                     ToStringFunc="@(e => e == null ? null : e.Nombre)"
                                     Variant="Variant.Outlined" 
@@ -220,6 +220,8 @@
     private MudDateRangePicker _picker;
     private DateRange _dateRange = new DateRange(DateTime.Now.Date.AddDays(-15), DateTime.Now.Date);
 
+    private bool _procesando = false;
+
     protected override async Task OnInitializedAsync() => await CargarTodosLosDatos();
 
     private async Task CargarTodosLosDatos() 
@@ -234,34 +236,53 @@
             listaOperarios = await t2 ?? new();
             listaTareas = await t3 ?? new();
             listaVehiculos = await t4 ?? new();
-        } catch (Exception ex) { Snackbar.Add("Error: " + ex.Message, Severity.Error); }
+        } catch (Exception ex) { 
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
     }
 
     private async Task GuardarLavado() 
     {
+        if (_procesando) return;
+
+
         await formRegistro.Validate();
         if (formRegistro.IsValid) {
-            var registro = new RegistrosLavado {
-                Id = selectedItem?.Id ?? 0,
-                FkCodigoOperario = operarioSeleccionado.Codigo,
-                FkIdTarea = tareaSeleccionada.Id,
-                FkBastidor = vehiculoSeleccionado?.Bastidor,
-                Fecha = fechaSeleccionada ?? DateTime.Now,
-                ComisionRegistro = tareaSeleccionada.ComisionTarea,
-                FechaModificacion = DateTime.Now,
-                UsuarioModifico = 1,
-                Activo = true
-            };
+            _procesando = true;
+            try 
+            {
+                            
+                var registro = new RegistrosLavado {
+                    Id = selectedItem?.Id ?? 0,
+                    FkCodigoOperario = operarioSeleccionado.Codigo,
+                    FkIdTarea = tareaSeleccionada.Id,
+                    FkBastidor = vehiculoSeleccionado?.Bastidor,
+                    Fecha = fechaSeleccionada ?? DateTime.Now,
+                    ComisionRegistro = tareaSeleccionada.ComisionTarea,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 1,
+                    Activo = true
+                };
 
-            var res = (selectedItem == null) 
-                ? await Http.PostAsJsonAsync("api/registroslavados", registro) 
-                : await Http.PutAsJsonAsync($"api/registroslavados/{registro.Id}", registro);
+                var res = (selectedItem == null) 
+                    ? await Http.PostAsJsonAsync("api/registroslavados", registro) 
+                    : await Http.PutAsJsonAsync($"api/registroslavados/{registro.Id}", registro);
 
-            if (res.IsSuccessStatusCode) {
-                Snackbar.Add(selectedItem == null ? "Registrado" : "Actualizado", Severity.Success);
-                await CargarTodosLosDatos();
-                _abreCrearLavado = false;
+                if (res.IsSuccessStatusCode) {
+                    Snackbar.Add(selectedItem == null ? "Registrado" : "Actualizado", Severity.Success);
+                    await CargarTodosLosDatos();
+                    _abreCrearLavado = false;
+                }
+                else
+                {
+                    Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+                }
             }
+            finally {
+                _procesando = false;
+            }
+
+            
         }
     }
 
@@ -403,11 +424,9 @@
 
     private async Task<IEnumerable<Vehiculo>> SearchVehiculos(string value)
     {
-        // Si no hay texto, devolvemos la lista completa
         if (string.IsNullOrEmpty(value))
             return listaVehiculos;
 
-        // Buscamos coincidencia en ID, Marca o Modelo
         return listaVehiculos.Where(x => 
             x.Idv.ToString().Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
             x.DesMarca.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
