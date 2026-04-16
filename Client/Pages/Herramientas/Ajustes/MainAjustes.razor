@@ -25,13 +25,6 @@
                 Crear Herramienta
             </MudButton>
 
-            <MudButton Variant="Variant.Filled"
-                        Size="Size.Large"
-                        Color="Color.Info"
-                        OnClick="@AbrirCrearTipo">
-                Crear Tipo de Herramienta
-            </MudButton>
-
             @*Overlay de Crear Herramienta*@
             <MudOverlay Visible="_abreCrearHerramienta" OnClick="@AbrirCrearHerramienta" DarkBackground="true" ZIndex="5" />
 
@@ -45,12 +38,23 @@
                 <div style="width: 1000px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
                         <MudForm @ref="formulario" Spacing="9">
-                            <MudSelect T="Herramienta" Label="Tipo de Herramienta" @bind-Value="_value" Required="true" RequiredError="Debes seleccionar al menos uno">
+                            <MudAutocomplete T="Herramienta"
+                                             Label="Seleccionar Tipo de Herramienta"
+                                             @bind-Value="_value"
+                                             SearchFunc="@SearchTiposHerramientas"
+                                             ToStringFunc="@(e => e == null ? null : e.Tipo)"
+                                             Variant="Variant.Outlined"
+                                             Required="true"
+                                             Class="mb-4"
+                                             ResetValueOnEmptyText="true"
+                                             CoerceText="false"
+                                             CoerceValue="false" />
+                            @* <MudSelect T="Herramienta" Label="Tipo de Herramienta" @bind-Value="_value" Required="true" RequiredError="Debes seleccionar al menos uno">
                                 @foreach (Herramienta herramienta in TiposHerramientas)
                                 {
                                     <MudSelectItem Value="@herramienta">@herramienta.Tipo</MudSelectItem>
                                 }
-                            </MudSelect>
+                            </MudSelect> *@
                             <MudTextField @bind-Value="DescripcionHerramienta" Label="Nombre/Descripcion de Herramienta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
 
                             <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
@@ -280,6 +284,15 @@
         _value = TiposHerramientas.FirstOrDefault(t => t.Id == herramienta.FkIdHerramienta);
     }
 
+    private async Task<IEnumerable<Herramienta>> SearchTiposHerramientas(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return TiposHerramientas;
+
+        return TiposHerramientas.Where(x =>
+            (x.Tipo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true));
+    }
+
     private bool _quickFilter(HerramientasDetalle x)
     {
         if (string.IsNullOrWhiteSpace(_searchString))
@@ -310,16 +323,7 @@
         else
             _abreCrearHerramienta = true;
     }
-
-    public bool _abreCrearTipo;
-
-    public void AbrirCrearTipo()
-    {
-        if (_abreCrearTipo)
-            _abreCrearTipo = false;
-        else
-            _abreCrearTipo = true;
-    }
+   
     public void limpiarFormulario()
     {
         _modoActual = "Crear";
