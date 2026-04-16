@@ -236,7 +236,9 @@
             listaOperarios = await t2 ?? new();
             listaTareas = await t3 ?? new();
             listaVehiculos = await t4 ?? new();
-        } catch (Exception ex) { Snackbar.Add("Error: " + ex.Message, Severity.Error); }
+        } catch (Exception ex) { 
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
     }
 
     private async Task GuardarLavado() 
@@ -270,6 +272,10 @@
                     Snackbar.Add(selectedItem == null ? "Registrado" : "Actualizado", Severity.Success);
                     await CargarTodosLosDatos();
                     _abreCrearLavado = false;
+                }
+                else
+                {
+                    Snackbar.Add("Error al procesar la solicitud", Severity.Error);
                 }
             }
             finally {

@@ -102,7 +102,7 @@
         try {
             ListaVehiculos = await Http.GetFromJsonAsync<List<Vehiculo>>("api/vehiculos") ?? new();
         } catch (Exception ex) {
-            Snackbar.Add("Error al cargar vehículos: " + ex.Message, Severity.Error);
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
         }
     }
 
@@ -149,7 +149,7 @@
                     _abreCrearVehiculo = false;
                     LimpiarFormulario();
                 } else {
-                    Snackbar.Add("Error al procesar la solicitud. Verifica los datos.", Severity.Error);
+                    Snackbar.Add("Error al procesar la solicitud", Severity.Error);
                 }
 
             }
