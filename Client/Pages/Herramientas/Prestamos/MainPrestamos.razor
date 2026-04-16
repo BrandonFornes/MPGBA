@@ -31,15 +31,18 @@
                     <MudStack Spacing="4">
                         <MudForm @ref="formularioPrestamo" Spacing="9">
                             @* Selección filtrada solo a Mecánica *@
-                            <MudSelect T="Operario" Label="Seleccione Mecánico" @bind-Value="operarioSeleccionado" 
-                                        Variant="Variant.Outlined" Required="true" RequiredError="Campo Obligatorio" 
-                                        AnchorOrigin="Origin.BottomCenter" Class="mb-4">
-                                @foreach (var op in Mecanicos)
-                                {
-                                    <MudSelectItem Value="@op">@($"{op.Codigo} - {op.Nombre}")</MudSelectItem>
-                                }
-                            </MudSelect>
-
+                            <MudAutocomplete T="Operario"
+                                             Label="Seleccionar Operario"
+                                             @bind-Value="operarioSeleccionado"
+                                             SearchFunc="@SearchOperarios"
+                                             ToStringFunc="@(e => e == null ? null : e.Nombre)"
+                                             Variant="Variant.Outlined"
+                                             Required="true"
+                                             Class="mb-4"
+                                             ResetValueOnEmptyText="true"
+                                             CoerceText="false"
+                                             CoerceValue="false" />
+                            
                             @if (operarioSeleccionado != null)
                             {
                                 <MudTextField @bind-Value="motivoPrestamo" Label="Motivo" Variant="Variant.Outlined" Required="true" Class="mb-4" />
@@ -47,6 +50,9 @@
 
                                 <MudSelect T="HerramientasDetalle" Label="Escoge la(s) herramientas" Variant="Variant.Outlined" 
                                             MultiSelection="true" Required="true" RequiredError="Seleccione al menos una"
+                                            SearchBox="true"
+                                            SearchBoxAutoFocus="true"
+                                            SearchBoxPlaceholder="Buscar por descripción o etiqueta..."
                                             Class="mb-4" AnchorOrigin="Origin.BottomCenter"
                                             ToStringFunc="@(h => h == null ? null : $"{h.Descripcion} - {h.Etiqueta}")"
                                             @bind-SelectedValues="_herramientasSeleccionadas">
@@ -79,14 +85,18 @@
                 <div style="width: 1000px; height: auto;" class="pa-5">
                     <MudStack Spacing="4">
                         <MudForm @ref="formularioDevolucion" Spacing="9">
-                            <MudSelect T="Operario" Label="Mecánico que devuelve" @bind-Value="operarioDevolucion" 
-                                        Variant="Variant.Outlined" Required="true" Class="mb-4" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var op in MecanicosConPrestamos)
-                                {
-                                    <MudSelectItem Value="@op">@($"{op.Codigo} - {op.Nombre}")</MudSelectItem>
-                                }
-                            </MudSelect>
-
+                            <MudAutocomplete T="Operario"
+                                             Label="Seleccionar Operario con Prestamo"
+                                             @bind-Value="operarioDevolucion"
+                                             SearchFunc="@SearchOperariosConPrestamos"
+                                             ToStringFunc="@(e => e == null ? null : e.Nombre)"
+                                             Variant="Variant.Outlined"
+                                             Required="true"
+                                             Class="mb-4"
+                                             ResetValueOnEmptyText="true"
+                                             CoerceText="false"
+                                             CoerceValue="false" />
+                          
                             @if (operarioDevolucion != null)
                             {
                                 <MudSelect T="PrestamosDetalle" Label="Herramientas a devolver" Variant="Variant.Outlined" 
@@ -171,7 +181,7 @@
     private MudForm formularioPrestamo, formularioDevolucion;
     private Operario operarioSeleccionado, operarioDevolucion;
     private string motivoPrestamo, codigoServicio, nipEncargado, nipDevolucion, comentarioDevolucion;
-    
+
     private List<Prestamo> ListaPrestamos = new();
     private List<Operario> ListaOperarios = new();
     private List<HerramientasDetalle> HerramientasDisponibles = new();
@@ -189,7 +199,7 @@
                 (o.Seccion.Contains("Mecanica", StringComparison.OrdinalIgnoreCase) || 
                 o.Seccion.Contains("Mecánica", StringComparison.OrdinalIgnoreCase)))
         .ToList();
-    
+
     private List<Operario> MecanicosConPrestamos => Mecanicos
         .Where(m => ListaPrestamos.Any(p => 
             p.FkCodigoOperario == m.Codigo && 
@@ -215,7 +225,7 @@
         {
             Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
         }
-        
+
     }
 
     private async Task<bool> ValidarNipEnApi(string codigo, string pin) 
@@ -301,6 +311,26 @@
         comentarioDevolucion = string.Empty;
         nipDevolucion = string.Empty;
         _detallesADevolver = new HashSet<PrestamosDetalle>();
+    }
+    private async Task<IEnumerable<Operario>> SearchOperarios(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return Mecanicos;
+
+        return Mecanicos.Where(x =>
+            (x.Nombre?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true) ||
+            (x.Codigo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true)
+        );
+    }
+    private async Task<IEnumerable<Operario>> SearchOperariosConPrestamos(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return MecanicosConPrestamos;
+
+        return MecanicosConPrestamos.Where(x =>
+            (x.Nombre?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true) ||
+            (x.Codigo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true)
+        );
     }
 
     private bool _quickFilter(Prestamo x)
