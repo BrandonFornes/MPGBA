@@ -61,9 +61,9 @@
                                                 Required="true" RequiredError="NIP Requerido" Class="mb-4" />
 
                                 <MudCardActions>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" 
-                                                StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarPrestamo">
-                                        Registrar Préstamo
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto"
+                                               StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarPrestamo" Disabled="@_procesando">
+                                                @( _procesando ? "Procesando..." : "Registrar Préstamo" )
                                     </MudButton>
                                 </MudCardActions>
                             }
@@ -103,9 +103,9 @@
                                 <MudTextField T="string" Label="NIP Confirmación" @bind-Value="nipDevolucion" InputType="InputType.Password" Variant="Variant.Outlined" Required="true" Class="mb-4" />
 
                                 <MudCardActions>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Class="ml-auto" 
-                                                StartIcon="@Icons.Material.Filled.AssignmentReturn" OnClick="GuardarDevolucion">
-                                        Procesar Devolución
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Class="ml-auto"
+                                               StartIcon="@Icons.Material.Filled.AssignmentReturn" OnClick="GuardarDevolucion" Disabled="@_procesando">
+                                                @( _procesando ? "Procesando..." : "Procesar Devolución" )
                                     </MudButton>
                                 </MudCardActions>
                             }
@@ -166,6 +166,7 @@
 
 @code {
     private bool _abrePrestamo, _abreDevolucion;
+    private bool _procesando = false;
     private string _searchString;
     private MudForm formularioPrestamo, formularioDevolucion;
     private Operario operarioSeleccionado, operarioDevolucion;
@@ -226,26 +227,44 @@
 
     private async Task GuardarPrestamo() 
     {
+        if (_procesando) return;
+
         await formularioPrestamo.Validate();
-        if (formularioPrestamo.IsValid && _herramientasSeleccionadas.Any()) {
-            if (!(await ValidarNipEnApi(operarioSeleccionado.Codigo, nipEncargado))) {
-                Snackbar.Add("¡NIP Incorrecto! Verifique sus credenciales.", Severity.Error);
-                return;
+        if (formularioPrestamo.IsValid && _herramientasSeleccionadas.Any())
+        {
+            _procesando = true;
+            try
+            {
+                if (!(await ValidarNipEnApi(operarioSeleccionado.Codigo, nipEncargado)))
+                {
+                    Snackbar.Add("¡NIP Incorrecto! Verifique sus credenciales.", Severity.Error);
+                    return;
+                }
+
+                var p = new Prestamo
+                {
+                    FkCodigoOperario = operarioSeleccionado.Codigo,
+                    FkCodigoEncargado = "OP004",
+                    Motivo = motivoPrestamo,
+                    CodigoServicio = codigoServicio,
+                    FechaSolicitud = DateTime.Now,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 1,
+                    Activo = true,
+                    PrestamosDetalles = _herramientasSeleccionadas.Select(h => new PrestamosDetalle { FkIdHerramienta = h.Id, Activo = true, FechaModificacion = DateTime.Now, UsuarioModifico = 1 }).ToList()
+                };
+
+                if ((await Http.PostAsJsonAsync("api/prestamos", p)).IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Préstamo registrado.", Severity.Success);
+                    _abrePrestamo = false;
+                    LimpiarFormulario();
+                    await CargarDatos();
+                }
             }
-            var p = new Prestamo {
-                FkCodigoOperario = operarioSeleccionado.Codigo,
-                FkCodigoEncargado = "OP004",
-                Motivo = motivoPrestamo,
-                CodigoServicio = codigoServicio,
-                FechaSolicitud = DateTime.Now,
-                FechaModificacion = DateTime.Now,
-                UsuarioModifico = 1,
-                Activo = true,
-                PrestamosDetalles = _herramientasSeleccionadas.Select(h => new PrestamosDetalle { FkIdHerramienta = h.Id, Activo = true, FechaModificacion = DateTime.Now, UsuarioModifico = 1 }).ToList()
-            };
-            if ((await Http.PostAsJsonAsync("api/prestamos", p)).IsSuccessStatusCode) {
-                Snackbar.Add("Préstamo registrado.", Severity.Success);
-                _abrePrestamo = false; LimpiarFormulario(); await CargarDatos();
+            finally
+            {
+                _procesando = false;
             }
         }
     }

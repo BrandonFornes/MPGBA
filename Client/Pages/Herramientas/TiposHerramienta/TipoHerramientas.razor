@@ -37,8 +37,9 @@
 
                             <MudCardActions>
                                 <MudButton ButtonType="ButtonType.Submit" OnClick="GuardarTipoHerramienta" Variant="Variant.Filled"
-                                           Color="@(_modoActual == "Eliminar" ? Color.Error : _modoActual == "Editar" ? Color.Warning : Color.Primary)" Class="ml-auto">
-                                            @($"{_modoActual}")
+                                           Color="@(_modoActual == "Eliminar" ? Color.Error : _modoActual == "Editar" ? Color.Warning : Color.Primary)"
+                                           Class="ml-auto" Disabled="@_procesando">
+                                            @(_procesando ? "Procesando..." : _modoActual.ToUpper())
                                 </MudButton>
                             </MudCardActions>
                         </MudForm>
@@ -92,6 +93,7 @@
 @code {
     public string NombreHerramienta { get; set; }
     MudForm formulario;
+    private bool _procesando = false;
 
     private string _searchString;
     private string _modoActual = "Crear";
@@ -117,36 +119,50 @@
 
     protected async Task GuardarTipoHerramienta()
     {
+        if (_procesando) return;
+
         await formulario.Validate();
 
         if (formulario.IsValid)
         {
-            Herramienta herramienta = new Herramienta
-            {
-                Id = _modoActual == "Editar" || _modoActual == "Eliminar" ? selectedItem.Id : 0,
-                Tipo = NombreHerramienta,
-                FechaModificacion = DateTime.Today,
-                UsuarioModifico = 1,
-                Activo = true
-            };
-            HttpResponseMessage response;
-            if (_modoActual == "Crear")
-            {
-                response = await Http.PostAsJsonAsync("api/herramienta", herramienta);
-            }
-            else if (_modoActual == "Editar")
-            {
-                response = await Http.PutAsJsonAsync($"api/herramienta/{herramienta.Id}", herramienta);
-            }
-            else
-            {
-                response = await Http.DeleteAsync($"api/herramienta/{herramienta.Id}");
-            }
-            if (response.IsSuccessStatusCode)
-            {
-                await CargarDatos();
-                AbrirCrearTipo();
+            _procesando = true;
 
+            try
+            {
+                Herramienta herramienta = new Herramienta
+                {
+                    Id = _modoActual == "Editar" || _modoActual == "Eliminar" ? selectedItem.Id : 0,
+                    Tipo = NombreHerramienta,
+                    FechaModificacion = DateTime.Today,
+                    UsuarioModifico = 1,
+                    Activo = true
+                };
+
+                HttpResponseMessage response;
+
+                if (_modoActual == "Crear")
+                {
+                    response = await Http.PostAsJsonAsync("api/herramienta", herramienta);
+                }
+                else if (_modoActual == "Editar")
+                {
+                    response = await Http.PutAsJsonAsync($"api/herramienta/{herramienta.Id}", herramienta);
+                }
+                else
+                {
+                    response = await Http.DeleteAsync($"api/herramienta/{herramienta.Id}");
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await CargarDatos();
+                    AbrirCrearTipo();
+                    Snackbar.Add("Acción completada con éxito.", Severity.Success);
+                }
+            }
+            finally
+            {
+                _procesando = false;
             }
         }
     }

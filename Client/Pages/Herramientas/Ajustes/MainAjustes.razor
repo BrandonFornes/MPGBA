@@ -35,9 +35,6 @@
             @*Overlay de Crear Herramienta*@
             <MudOverlay Visible="_abreCrearHerramienta" OnClick="@AbrirCrearHerramienta" DarkBackground="true" ZIndex="5" />
 
-            @*Overlay de Crear Tipo de Herramienta*@
-            <MudOverlay Visible="_abreCrearTipo" OnClick="@AbrirCrearTipo" DarkBackground="true" ZIndex="5" />
-
             @*Popover para crear herramienta*@
             <MudPopover Open="@_abreCrearHerramienta" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
 
@@ -74,31 +71,15 @@
                             </MudSelect>
 
                             <MudCardActions>
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarHerramienta">
-                                    @($"{_modoActual} Herramienta")
+                                <MudButton Variant="Variant.Filled"
+                                           Color="@(_modoActual switch { "Eliminar" => Color.Error, "Editar" => Color.Warning, _ => Color.Primary })"
+                                           Class="ml-auto"
+                                           OnClick="GuardarHerramienta"
+                                           Disabled="@_procesando">
+                                           @(_procesando ? "Procesando..." : $"{_modoActual.ToUpper()} HERRAMIENTA")
                                 </MudButton>
                             </MudCardActions>
 
-                        </MudForm>
-                    </MudStack>
-                </div>
-            </MudPopover>
-
-            @*Popover para crear tipo de herramienta*@
-            <MudPopover Open="@_abreCrearTipo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
-
-                <MudText Typo="Typo.h5" Class="pa-4">
-                    Crear Herramienta
-                </MudText>
-
-                <div style="width: 1000px; height: auto;" class="pa-5">
-                    <MudStack Spacing="4">
-                        <MudForm @ref="formulario2" Spacing="9">
-                            <MudTextField @bind-Value="NombreHerramienta" Label="Tipo de Herramienta" Variant="Variant.Text"></MudTextField>
-
-                            <MudCardActions>
-                                <MudButton ButtonType="ButtonType.Submit" OnClick="CrearTipoHerramienta" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">CREAR</MudButton>
-                            </MudCardActions>
                         </MudForm>
                     </MudStack>
                 </div>
@@ -173,7 +154,7 @@
     private Herramienta _value;
     private IEnumerable<string> _options = new HashSet<string> { };
     MudForm formulario;
-    MudForm formulario2;
+    private bool _procesando = false;
 
     private string _searchString;
     private string _modoActual = "Crear";
@@ -217,37 +198,19 @@
         }
     }
 
-    protected async Task CrearTipoHerramienta()
-    {   
-        Herramienta herramienta = new Herramienta
-        {
-            Tipo = NombreHerramienta,
-            FechaModificacion = DateTime.Today,
-            UsuarioModifico = 1,
-            Activo = true
-        };
-        var response = await Http.PostAsJsonAsync("api/herramienta", herramienta);
-
-        if (response.IsSuccessStatusCode)
-        {
-
-            NombreHerramienta = "";
-            _abreCrearTipo = false;
-            TiposHerramientas = await Http.GetFromJsonAsync<List<Herramienta>>("api/herramienta");
-        }
-        else
-        {
-            Console.WriteLine(response);
-        }
-    }
-
     protected async Task GuardarHerramienta()
     {
+        if (_procesando) return;
+
         await formulario.Validate();
 
         if (formulario.IsValid)
         {
-            HerramientasDetalle herramientasDetalle = new HerramientasDetalle
+            _procesando = true;
+
+            try
+            {
+                HerramientasDetalle herramientasDetalle = new HerramientasDetalle
                 {
                     Id = selectedItem?.Id ?? 0,
                     FkIdHerramienta = TiposHerramientas.FirstOrDefault(x => x.Tipo == _value.Tipo)?.Id ?? 0,
@@ -260,24 +223,32 @@
                     UsuarioModifico = 0,
                     Activo = true
                 };
-            HttpResponseMessage response;
-            if (_modoActual == "Crear")
-            {
-                response = await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
-            }
-            else if (_modoActual == "Editar")
-            {
-                response = await Http.PutAsJsonAsync($"api/herramientasdetalles/{herramientasDetalle.Id}", herramientasDetalle);
-            }
-            else
-            {
-                response = await Http.DeleteAsync($"api/herramientasdetalles/{herramientasDetalle.Id}");
-            }
-            if (response.IsSuccessStatusCode)
-            {
-                await CargarDatos();
-                AbrirCrearHerramienta();
 
+                HttpResponseMessage response;
+
+                if (_modoActual == "Crear")
+                {
+                    response = await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle);
+                }
+                else if (_modoActual == "Editar")
+                {
+                    response = await Http.PutAsJsonAsync($"api/herramientasdetalles/{herramientasDetalle.Id}", herramientasDetalle);
+                }
+                else
+                {
+                    response = await Http.DeleteAsync($"api/herramientasdetalles/{herramientasDetalle.Id}");
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await CargarDatos();
+                    AbrirCrearHerramienta();
+                    Snackbar.Add($"Herramienta {_modoActual.ToLower()}da con éxito.", Severity.Success);
+                }
+            }
+            finally
+            {
+                _procesando = false;
             }
         }
     }
