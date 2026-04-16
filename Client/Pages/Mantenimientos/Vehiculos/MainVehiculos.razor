@@ -45,8 +45,8 @@
 
                         <MudCardActions>
                             <MudButton OnClick="@AbrirCrearVehiculo" Color="Color.Default" Class="mr-2">Cancelar</MudButton>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarVehiculo">
-                                @(selectedItem == null ? "Guardar Vehículo" : "Actualizar Cambios")
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarVehiculo" Disabled="@_procesando">
+                                    @( _procesando ? "Procesando..." : (selectedItem == null ? "Guardar" : "Actualizar" ) )
                             </MudButton>
                         </MudCardActions>
                     </MudForm>
@@ -56,18 +56,18 @@
 
         <MudDataGrid T="Vehiculo" Items="@ListaVehiculos" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Listado Real de Vehículos</MudText>
+                <MudText Typo="Typo.h6">Listado de Vehículos</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="_searchString" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
             </ToolBarContent>
             <Columns>
-                <PropertyColumn Property="x => x.Idv" Title="IDV" />
-                <PropertyColumn Property="x => x.Bastidor" Title="Bastidor" />
-                <PropertyColumn Property="x => x.Marca" Title="Marca" />
-                <PropertyColumn Property="x => x.DesModelo" Title="Modelo" />
-                <PropertyColumn Property="x => x.AnioVehi" Title="Año" />
-                <PropertyColumn Property="x => x.Km" Title="Kms" Format="N0" />
-                <PropertyColumn Property="x => x.Fechafin" Title="Fecha Fin" Format="dd/MM/yyyy" />
+                <PropertyColumn Property="x => x.Idv" Title="IDV" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.Bastidor" Title="Bastidor" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.DesModelo" Title="Modelo" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.AnioVehi" Title="Año" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.Km" Title="Kms" Format="N0" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.Fechafin" Title="Fecha Fin" Format="dd/MM/yyyy" Sortable="false" Filterable="false" />
                 
                 <TemplateColumn Title="Acciones" Filterable="false" Sortable="false">
                     <CellTemplate>
@@ -76,7 +76,10 @@
                 </TemplateColumn>
             </Columns>
             <PagerContent>
-                <MudDataGridPager T="Vehiculo" />
+                <MudDataGridPager T="Vehiculo" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
             </PagerContent>
         </MudDataGrid>
     </MudItem>
@@ -90,6 +93,8 @@
     private MudForm formulario;
     private DateTime? fechaFinSeleccionada = DateTime.Today.AddYears(1);
     public bool _abreCrearVehiculo;
+
+    private bool _procesando = false;
 
     protected override async Task OnInitializedAsync() => await CargarVehiculos();
 
@@ -120,25 +125,37 @@
     }
 
     private async Task GuardarVehiculo() {
+        if (_procesando) return;
+
         await formulario.Validate();
         if (formulario.IsValid) {
-            nuevoVehiculo.Fechafin = fechaFinSeleccionada ?? DateTime.Now;
-            
-            HttpResponseMessage response;
-            
-            if (selectedItem == null) {
-                response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
-            } else {
-                response = await Http.PutAsJsonAsync($"api/vehiculos/{nuevoVehiculo.Bastidor}", nuevoVehiculo);
+            _procesando = true;
+
+            try
+            {
+                nuevoVehiculo.Fechafin = fechaFinSeleccionada ?? DateTime.Now;
+                
+                HttpResponseMessage response;
+                
+                if (selectedItem == null) {
+                    response = await Http.PostAsJsonAsync("api/vehiculos", nuevoVehiculo);
+                } else {
+                    response = await Http.PutAsJsonAsync($"api/vehiculos/{nuevoVehiculo.Bastidor}", nuevoVehiculo);
+                }
+                
+                if (response.IsSuccessStatusCode) {
+                    Snackbar.Add(selectedItem == null ? "Vehículo registrado" : "Vehículo actualizado", Severity.Success);
+                    await CargarVehiculos();
+                    _abreCrearVehiculo = false;
+                    LimpiarFormulario();
+                } else {
+                    Snackbar.Add("Error al procesar la solicitud. Verifica los datos.", Severity.Error);
+                }
+
             }
-            
-            if (response.IsSuccessStatusCode) {
-                Snackbar.Add(selectedItem == null ? "Vehículo registrado" : "Vehículo actualizado", Severity.Success);
-                await CargarVehiculos();
-                _abreCrearVehiculo = false;
-                LimpiarFormulario();
-            } else {
-                Snackbar.Add("Error al procesar la solicitud. Verifica los datos.", Severity.Error);
+            finally
+            {
+                _procesando = false;
             }
         }
     }
