@@ -36,9 +36,7 @@
                                 <MudTextField T="string" Label="Descripción Modelo" @bind-Value="nuevoVehiculo.DesModelo" Variant="Variant.Outlined" Class="mb-4" />
                                 <MudTextField T="string" Label="Año" @bind-Value="nuevoVehiculo.AnioVehi" Variant="Variant.Outlined" Class="mb-4" />
                                 <MudNumericField T="decimal?" Label="Kilometraje" @bind-Value="nuevoVehiculo.Km" Variant="Variant.Outlined" Class="mb-4" />
-                                <MudSelect T="string" Label="Familia" @bind-Value="nuevoVehiculo.Familia" Variant="Variant.Outlined" Class="mb-4">
-                                    @foreach (var f in listaFamilias) { <MudSelectItem Value="@f">@f</MudSelectItem> }
-                                </MudSelect>
+                                <MudTextField T="string" Label="Familia" @bind-Value="nuevoVehiculo.Familia" Variant="Variant.Outlined" Class="mb-4" />
                                 <MudDatePicker Label="Fecha Fin" @bind-Date="fechaFinSeleccionada" Required="true" Variant="Variant.Outlined" />
                             </MudItem>
                         </MudGrid>
@@ -175,9 +173,14 @@
     private bool _quickFilter(Vehiculo x) {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
         return (x.Bastidor?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) || 
+                (x.Marca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (x.DesMarca?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.Modelo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.DesModelo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.DesColor?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.DesFamilia?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.AnioVehi?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (x.Idv?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false);
     }
 
-    List<string> listaFamilias = new() { "FORD", "MAZDA", "DONGFENG", "JETOUR", "LINCOLN" };
 }
