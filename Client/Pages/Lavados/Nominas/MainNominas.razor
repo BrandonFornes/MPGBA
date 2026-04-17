@@ -66,7 +66,7 @@
                                 Label="Vehículo" 
                                 @bind-Value="vehiculoSeleccionado" 
                                 SearchFunc="@SearchVehiculos"
-                                ToStringFunc="@(v => v == null ? null : $"{v.Idv} - {v.DesMarca} {v.DesModelo}")"
+                                ToStringFunc="@(v => v == null ? null : $"{v.Bastidor} - {v.DesMarca} {v.DesModelo}")"
                                 Variant="Variant.Outlined" 
                                 Required="true" 
                                 Class="mb-4"
@@ -401,7 +401,7 @@
             lavador.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
             tarea.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
             vehiculo.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-            fechaString.Contains(_searchString); // <--- Filtro por fecha agregado
+            fechaString.Contains(_searchString); 
     }
 
     private async Task<IEnumerable<Operario>> SearchLavadores(string value)
@@ -428,6 +428,7 @@
             return listaVehiculos;
 
         return listaVehiculos.Where(x => 
+            x.Bastidor.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
             x.Idv.ToString().Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
             x.DesMarca.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
             x.DesModelo.Contains(value, StringComparison.InvariantCultureIgnoreCase));

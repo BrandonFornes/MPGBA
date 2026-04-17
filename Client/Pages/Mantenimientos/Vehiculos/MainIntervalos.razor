@@ -225,7 +225,9 @@
     private bool _quickFilter(Intervalo x)
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
-        return x.marcavehiculo?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+        return 
+        x.Intervalo_dias.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        x.marcavehiculo.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
     }
 
     public void AbrirCrearIntervalo() 
