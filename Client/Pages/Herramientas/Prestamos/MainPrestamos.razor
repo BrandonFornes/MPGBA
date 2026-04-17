@@ -185,9 +185,9 @@
                 <MudTextField @bind-Value="_searchStringTotales" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
             </ToolBarContent>
             <Columns>
-                <PropertyColumn Property="x => x.IdPrestamos" Title="ID" />
-                <PropertyColumn Property="x => x.FkCodigoOperario" Title="Operario" />
-                <TemplateColumn Title="Mecánico Responsable">
+                <PropertyColumn Property="x => x.IdPrestamos" Title="ID" Sortable="false" Filterable="false"  />
+                <PropertyColumn Property="x => x.FkCodigoOperario" Title="Operario" Sortable="false" Filterable="false"  />
+                <TemplateColumn Title="Mecánico Responsable" Sortable="false" Filterable="false" >
                     <CellTemplate>
                         @ObtenerNombreOperario(context.Item.FkCodigoOperario)
                     </CellTemplate>
@@ -212,7 +212,10 @@
                 </MudCard>
             </ChildRowContent>
             <PagerContent>
-                <MudDataGridPager T="Prestamo" />
+                <MudDataGridPager T="Prestamo" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
             </PagerContent>
         </MudDataGrid>
     </MudItem>
