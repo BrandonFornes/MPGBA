@@ -125,11 +125,11 @@
             </MudPopover>
         </MudPaper>
 
-        <MudDataGrid T="Prestamo" Items="@ListaPrestamos" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
+        <MudDataGrid T="Prestamo" Items="@ListaPrestamos" Filterable="true" Sortable="true" QuickFilter="@_quickFilterActivos">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Lista de Préstamos Activos</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_searchString" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+                <MudTextField @bind-Value="_searchStringActivos" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.IdPrestamos" Title="ID" />
@@ -174,18 +174,56 @@
                 <MudDataGridPager T="Prestamo" />
             </PagerContent>
         </MudDataGrid>
+
+        <MudDataGrid T="Prestamo" Items="@ListaPrestamosTotales" Filterable="true" Sortable="true" QuickFilter="@_quickFilterTotales">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Historial TOTAL de Préstamos </MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchStringTotales" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.IdPrestamos" Title="ID" />
+                <PropertyColumn Property="x => x.FkCodigoOperario" Title="Operario" />
+                <TemplateColumn Title="Mecánico Responsable">
+                    <CellTemplate>
+                        @ObtenerNombreOperario(context.Item.FkCodigoOperario)
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.FechaSolicitud" Title="Fecha Solicitud" Format="dd/MM/yyyy" />
+                <HierarchyColumn T="Prestamo" />
+            </Columns>
+            <ChildRowContent>
+                <MudCard Elevation="0" Class="pa-4" Style="background-color: #f5f5f5;">
+                    <MudTable Items="@context.Item.PrestamosDetalles" Context="detalle" Hover="true" Dense="true">
+                        <HeaderContent>
+                            <MudTh>Herramienta</MudTh>
+                            <MudTh>Estado</MudTh>
+                            <MudTh>Fecha de Entrega</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@ObtenerNombreHerramienta(detalle.FkIdHerramienta)</MudTd>
+                            <MudTd>@(detalle.FechaEntrega == null ? "En uso" : "Devuelta")</MudTd>
+                            <MudTd>@(detalle.FechaEntrega?.ToString("dd/MM/yyyy HH:mm") ?? "-")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCard>
+            </ChildRowContent>
+            <PagerContent>
+                <MudDataGridPager T="Prestamo" />
+            </PagerContent>
+        </MudDataGrid>
     </MudItem>
 </MudGrid>
 
 @code {
     private bool _abrePrestamo, _abreDevolucion;
     private bool _procesando = false;
-    private string _searchString;
     private MudForm formularioPrestamo, formularioDevolucion;
     private Operario operarioSeleccionado, operarioDevolucion;
     private string motivoPrestamo, codigoServicio, nipEncargado, nipDevolucion, comentarioDevolucion;
 
     private List<Prestamo> ListaPrestamos = new();
+    private List<Prestamo> ListaPrestamosTotales = new();
     private List<Operario> ListaOperarios = new();
     private List<HerramientasDetalle> HerramientasDisponibles = new();
     private List<HerramientasDetalle> ListaTodasHerramientas = new();
@@ -193,6 +231,8 @@
     private IEnumerable<PrestamosDetalle> _detallesADevolver = new HashSet<PrestamosDetalle>();
     private Dictionary<int, HerramientasDetalle> _diccionarioHerramientas = new();
     private Prestamo PrestamoSelected { get; set; }
+    private string _searchStringActivos;
+    private string _searchStringTotales;
 
     private string ObtenerNombreOperario(string codigo) => ListaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
     private string ObtenerNombreHerramienta(int id) => _diccionarioHerramientas.TryGetValue(id, out var h) ? $"{h.Descripcion} - {h.Etiqueta}" : $"ID: {id}";
@@ -228,11 +268,12 @@
             var t2 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
             var t3 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
             await Task.WhenAll(t1, t2, t3);
-            ListaPrestamos = await t1 ?? new();
+            ListaPrestamosTotales = await t1 ?? new();
             ListaTodasHerramientas = await t2 ?? new();
             ListaOperarios = await t3 ?? new();
             _diccionarioHerramientas = ListaTodasHerramientas.ToDictionary(h => h.Id, h => h);
             HerramientasDisponibles = ListaTodasHerramientas.Where(h => h.Disponible == true).ToList();
+            ListaPrestamos = ListaPrestamosTotales.Where(p => p.PrestamosDetalles.Any(d => d.FechaEntrega == null)).ToList();
         }
         catch (Exception ex)
         {
@@ -267,7 +308,7 @@
                 var p = new Prestamo
                 {
                     FkCodigoOperario = operarioSeleccionado.Codigo,
-                    FkCodigoEncargado = "OP004",
+                    FkCodigoEncargado = "1206",
                     Motivo = motivoPrestamo,
                     CodigoServicio = codigoServicio,
                     FechaSolicitud = DateTime.Now,
@@ -357,28 +398,27 @@
             (x.Codigo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true)
         );
     }
-
-    private bool _quickFilter(Prestamo x)
+    private bool _quickFilterActivos(Prestamo x)
     {
-        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        if (string.IsNullOrWhiteSpace(_searchStringActivos)) return true;
 
-        if (x.FkCodigoOperario?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) 
-            return true;
-
-        if (ObtenerNombreOperario(x.FkCodigoOperario).Contains(_searchString, StringComparison.OrdinalIgnoreCase)) 
-            return true;
-
-        if (x.FechaSolicitud.ToString("dd/MM/yyyy").Contains(_searchString)) 
-            return true;
+        if (x.FkCodigoOperario?.Contains(_searchStringActivos, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (ObtenerNombreOperario(x.FkCodigoOperario).Contains(_searchStringActivos, StringComparison.OrdinalIgnoreCase)) return true;
+        if (x.FechaSolicitud.ToString("dd/MM/yyyy").Contains(_searchStringActivos)) return true;
         
-        if (x.PrestamosDetalles != null && x.PrestamosDetalles.Any(d => ObtenerNombreHerramienta(d.FkIdHerramienta).Contains(_searchString, StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
         return false;
     }
 
+    private bool _quickFilterTotales(Prestamo x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchStringTotales)) return true;
+
+        if (x.FkCodigoOperario?.Contains(_searchStringTotales, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (ObtenerNombreOperario(x.FkCodigoOperario).Contains(_searchStringTotales, StringComparison.OrdinalIgnoreCase)) return true;
+        if (x.FechaSolicitud.ToString("dd/MM/yyyy").Contains(_searchStringTotales)) return true;
+        
+        return false;
+    }
     public void AbrirPrestamo() 
     {
         _abrePrestamo = !_abrePrestamo;

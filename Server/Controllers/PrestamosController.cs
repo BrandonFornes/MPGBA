@@ -20,7 +20,6 @@ namespace AdminHerramientas.Server.Controllers
             var prestamos = await _context.Prestamos
                 .AsNoTracking()
                 .Include(p => p.PrestamosDetalles)
-                .Where(p => p.PrestamosDetalles.Any(d => d.FechaEntrega == null))
                 .ToListAsync();
             return Ok(prestamos);
         }
