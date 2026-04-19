@@ -53,6 +53,14 @@
                                             Required="true" 
                                             RequiredError="La comisión es obligatoria" />
                             
+                            @if (selectedItem != null)
+                            {
+                                <MudSelect T="bool" @bind-Value="_activo" Label="Estado" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="true">Activo</MudSelectItem>
+                                    <MudSelectItem Value="false">Inactivo</MudSelectItem>
+                                </MudSelect>
+                            }
+                            
 
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" 
@@ -133,6 +141,7 @@
 
     private string nombreTarea;
     private decimal comisionTarea;
+    private bool _activo = true; 
 
     private bool _procesando = false;
 
@@ -178,7 +187,7 @@
                     ComisionTarea = comisionTarea,
                     FechaModificacion = DateTime.Now,
                     UsuarioModifico = 1,
-                    Activo = true
+                    Activo = selectedItem == null ? true : _activo
                 };
 
                 HttpResponseMessage response;
@@ -218,6 +227,7 @@
         selectedItem = tarea;
         nombreTarea = tarea.NombreTarea;
         comisionTarea = tarea.ComisionTarea;
+        _activo = tarea.Activo;
 
         _abreCrearTarea = true;
     }
@@ -227,6 +237,7 @@
         selectedItem = null;
         nombreTarea = string.Empty;
         comisionTarea = 0;
+        _activo = true;
     }
 
     private bool _quickFilter(Tarea x)
