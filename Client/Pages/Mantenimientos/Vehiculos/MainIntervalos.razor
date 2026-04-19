@@ -50,6 +50,14 @@
                                             Variant="Variant.Outlined" 
                                             Required="true" 
                                             RequiredError="El intervalo es obligatorio" />
+
+                            @if (selectedItem != null)
+                            {
+                                <MudSelect T="bool" @bind-Value="_activo" Label="Estado" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="true">Activo</MudSelectItem>
+                                    <MudSelectItem Value="false">Inactivo</MudSelectItem>
+                                </MudSelect>
+                            }
                             
 
                             <MudCardActions>
@@ -126,6 +134,7 @@
 
     private string marcaVehiculo;
     private int intervaloDias;
+    private bool _activo = true; 
 
     private bool _procesando = false;
 
@@ -171,7 +180,7 @@
                     Intervalo_dias = intervaloDias,
                     FechaModificacion = DateTime.Now,
                     UsuarioModifico = 1,
-                    Activo = true
+                    Activo = selectedItem == null ? true : _activo
                 };
 
                 HttpResponseMessage response;
@@ -211,6 +220,7 @@
         selectedItem = intervalo;
         marcaVehiculo = intervalo.marcavehiculo;
         intervaloDias = intervalo.Intervalo_dias;
+        _activo = intervalo.Activo;
 
         _abreCrearIntervalo = true;
     }
@@ -220,6 +230,7 @@
         selectedItem = null;
         marcaVehiculo = string.Empty;
         intervaloDias = 0;
+        _activo = true;
     }
 
     private bool _quickFilter(Intervalo x)

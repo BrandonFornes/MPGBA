@@ -32,7 +32,7 @@ namespace AdminHerramientas.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Nip>>> GetNips()
         {
-            return await _context.Nips.AsNoTracking().ToListAsync();
+            return await _context.Nips.Where(n => n.Activo == true).ToListAsync();
         }
 
         [HttpPost]

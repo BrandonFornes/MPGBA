@@ -45,6 +45,14 @@
                             <MudTextField @bind-Value="nipOperario" Label="NIP de Acceso" Variant="Variant.Outlined" 
                                           Required="true" RequiredError="El nip es obligatorio" 
                                           InputType="InputType.Password" MaxLength="10" />
+                            
+                            @if (selectedItem != null)
+                            {
+                                <MudSelect T="bool" @bind-Value="_activo" Label="Estado" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="true">Activo</MudSelectItem>
+                                    <MudSelectItem Value="false">Inactivo</MudSelectItem>
+                                </MudSelect>
+                            }
 
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarNip" Disabled="@_procesando" >
@@ -101,6 +109,7 @@
     private MudForm formulario;
     public bool _abreCrearNip;
     private string nipOperario;
+    private bool _activo = true; 
 
     private bool _procesando = false;
 
@@ -144,7 +153,7 @@
                     ValorNip = nipOperario,
                     FechaModificacion = DateTime.Now,
                     UsuarioModifico = 1,
-                    Activo = true
+                    Activo = selectedItem == null ? true : _activo
                 };
 
                 HttpResponseMessage response = (selectedItem == null) 
@@ -176,6 +185,8 @@
         selectedItem = nip;
         operarioSeleccionado = listaOperarios.FirstOrDefault(o => o.Codigo == nip.Fk_codigoOperario);
         nipOperario = nip.ValorNip;
+        _activo = nip.Activo;
+
         _abreCrearNip = true;
     }
 
@@ -184,6 +195,7 @@
         selectedItem = null;
         operarioSeleccionado = null;
         nipOperario = string.Empty;
+        _activo = true;
     }
 
     private bool _quickFilter(Nip x)
