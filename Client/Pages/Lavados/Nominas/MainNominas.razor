@@ -76,6 +76,14 @@
 
                         <MudDatePicker Label="Fecha del Servicio" @bind-Date="fechaSeleccionada" Variant="Variant.Outlined" Required="true" Class="mb-4" />
 
+                        @if (selectedItem != null)
+                            {
+                                <MudSelect T="bool" @bind-Value="_activo" Label="Estado" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="true">Activo</MudSelectItem>
+                                    <MudSelectItem Value="false">Inactivo</MudSelectItem>
+                                </MudSelect>
+                            }
+
                         <MudCardActions>
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="GuardarLavado" Disabled="@_procesando">
                                 @( _procesando ? "Procesando..." : (selectedItem == null ? "Registrar" : "Actualizar" ) )
@@ -152,7 +160,7 @@
             </MudPopover>
         </MudPaper>
 
-        <MudDataGrid T="RegistrosLavado" Items="@listaHistorial" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
+        <MudDataGrid T="RegistrosLavado" Items="@listaHistorialDescendiente" Filterable="true" Sortable="true" QuickFilter="@_quickFilter">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Historial de Servicios</MudText>
                 <MudSpacer />
@@ -194,6 +202,8 @@
     private MudForm formRegistro;
     
     private List<RegistrosLavado> listaHistorial = new();
+    private List<RegistrosLavado> listaHistorialDescendiente => listaHistorial.OrderByDescending(h => h.Fecha).ToList();
+
     private List<Operario> listaOperarios = new();
     private List<Tarea> listaTareas = new();
     private List<Vehiculo> listaVehiculos = new();
@@ -219,6 +229,9 @@
 
     private MudDateRangePicker _picker;
     private DateRange _dateRange = new DateRange(DateTime.Now.Date.AddDays(-15), DateTime.Now.Date);
+
+    private bool _activo = true; 
+
 
     private bool _procesando = false;
 
@@ -261,7 +274,7 @@
                     ComisionRegistro = tareaSeleccionada.ComisionTarea,
                     FechaModificacion = DateTime.Now,
                     UsuarioModifico = 1,
-                    Activo = true
+                    Activo = selectedItem == null ? true : _activo
                 };
 
                 var res = (selectedItem == null) 
@@ -317,6 +330,7 @@
     private void LimpiarForm() {
         selectedItem = null; operarioSeleccionado = null; tareaSeleccionada = null;
         vehiculoSeleccionado = null; fechaSeleccionada = DateTime.Today;
+        _activo = true;
     }
 
     private void LimpiarDatosNomina() {
@@ -329,6 +343,8 @@
         tareaSeleccionada = listaTareas.FirstOrDefault(t => t.Id == registro.FkIdTarea);
         vehiculoSeleccionado = listaVehiculos.FirstOrDefault(v => v.Bastidor == registro.FkBastidor);
         fechaSeleccionada = registro.Fecha;
+        _activo = registro.Activo;
+
         _abreCrearLavado = true;
     }
 
