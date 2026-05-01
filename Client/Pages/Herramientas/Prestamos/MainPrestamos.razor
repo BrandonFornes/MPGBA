@@ -125,7 +125,7 @@
             </MudPopover>
         </MudPaper>
 
-        <MudDataGrid T="Prestamo" Items="@ListaPrestamos" Filterable="true" Sortable="true" QuickFilter="@_quickFilterActivos">
+        <MudDataGrid T="Prestamo" Items="@ListaPrestamosDesc" Filterable="true" Sortable="true" QuickFilter="@_quickFilterActivos">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Lista de Préstamos Activos</MudText>
                 <MudSpacer />
@@ -178,7 +178,7 @@
             </PagerContent>
         </MudDataGrid>
 
-        <MudDataGrid T="Prestamo" Items="@ListaPrestamosTotales" Filterable="true" Sortable="true" QuickFilter="@_quickFilterTotales">
+        <MudDataGrid T="Prestamo" Items="@ListaPrestamosTotalesDesc" Filterable="true" Sortable="true" QuickFilter="@_quickFilterTotales">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Historial TOTAL de Préstamos </MudText>
                 <MudSpacer />
@@ -229,7 +229,18 @@
     private string motivoPrestamo, codigoServicio, nipEncargado, nipDevolucion, comentarioDevolucion;
 
     private List<Prestamo> ListaPrestamos = new();
+
+    private List<Prestamo> ListaPrestamosDesc => ListaPrestamos
+        .OrderByDescending(p => p.FechaSolicitud)
+        .ToList();
+
     private List<Prestamo> ListaPrestamosTotales = new();
+
+    private List<Prestamo> ListaPrestamosTotalesDesc => ListaPrestamosTotales
+        .OrderByDescending(p => p.FechaSolicitud)
+        .ToList();
+
+
     private List<Operario> ListaOperarios = new();
     private List<HerramientasDetalle> HerramientasDisponibles = new();
     private List<HerramientasDetalle> ListaTodasHerramientas = new();

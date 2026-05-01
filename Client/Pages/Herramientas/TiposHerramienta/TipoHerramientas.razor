@@ -35,6 +35,14 @@
                         <MudForm @ref="formulario" Spacing="9">
                             <MudTextField @bind-Value="NombreHerramienta" Label="Tipo de Herramienta" Required="true" RequiredError="Campo Obligatorio" Variant="Variant.Text"></MudTextField>
 
+                            @if (selectedItem != null)
+                            {
+                                <MudSelect T="bool" @bind-Value="_activo" Label="Estado" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="true">Activo</MudSelectItem>
+                                    <MudSelectItem Value="false">Inactivo</MudSelectItem>
+                                </MudSelect>
+                            }
+
                             <MudCardActions>
                                 <MudButton ButtonType="ButtonType.Submit" OnClick="GuardarTipoHerramienta" Variant="Variant.Filled"
                                            Color="@(_modoActual == "Eliminar" ? Color.Error : _modoActual == "Editar" ? Color.Warning : Color.Primary)"
@@ -100,6 +108,8 @@
 
     private string _searchString;
     private string _modoActual = "Crear";
+
+    private bool _activo = true; 
     private Herramienta selectedItem;
     private List<Herramienta> TiposHerramientas = new();
 
@@ -138,7 +148,7 @@
                     Tipo = NombreHerramienta,
                     FechaModificacion = DateTime.Today,
                     UsuarioModifico = 1,
-                    Activo = true
+                    Activo = selectedItem == null ? true : _activo
                 };
 
                 HttpResponseMessage response;
@@ -176,8 +186,11 @@
         selectedItem = herramienta;
         _modoActual = "Editar";
         NombreHerramienta = herramienta.Tipo;
+        _activo = herramienta.Activo ?? false;
+
         AbrirCrearTipo();
     }
+
     private void EliminarTipoHerramienta(Herramienta herramienta)
     {
         selectedItem = herramienta;
@@ -219,6 +232,7 @@
         selectedItem = null;
         _modoActual = "Crear";
         NombreHerramienta = "";
+        _activo = true;
 
     }
 
