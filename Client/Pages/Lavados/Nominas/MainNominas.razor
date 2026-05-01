@@ -24,11 +24,9 @@
                 Generar Nómina
             </MudButton>
 
-            @* --- OVERLAYS --- *@
             <MudOverlay Visible="_abreCrearLavado" OnClick="@AbrirCrearLavado" DarkBackground="true" ZIndex="5" />
             <MudOverlay Visible="_abreGenerarNomina" OnClick="@AbrirGenerarNomina" DarkBackground="true" ZIndex="5" />
 
-            @* --- POPOVER: REGISTRAR/EDITAR --- *@
             <MudPopover Open="@_abreCrearLavado" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
                 <MudText Typo="Typo.h5" Class="pa-4">@(selectedItem == null ? "Registrar Nuevo Lavado" : "Editar Registro #" + selectedItem.Id)</MudText>
                 <div style="width: 600px; height: auto;" class="pa-5">
@@ -58,10 +56,6 @@
                             CoerceText="false" 
                             CoerceValue="false" />
                         
-
-
-                        
-
                         <MudAutocomplete T="Vehiculo" 
                                 Label="Vehículo" 
                                 @bind-Value="vehiculoSeleccionado" 
@@ -93,7 +87,6 @@
                 </div>
             </MudPopover>
 
-            @* --- POPOVER: GENERAR NÓMINA --- *@
             <MudPopover Open="@_abreGenerarNomina" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
                 <MudText Typo="Typo.h5" Class="pa-4">Cálculo de Nómina</MudText>
                 <div style="width: 800px; height: auto;" class="pa-5">
@@ -199,41 +192,36 @@
 @code {
     private CultureInfo _mexico = new CultureInfo("es-MX");
     private string _searchString = "";
-    private MudForm formRegistro;
+    private bool _activo = true; 
+    private bool _procesando = false;
+
+    private MudForm formRegistro = default!;
+    private MudDateRangePicker _picker = default!;
     
     private List<RegistrosLavado> listaHistorial = new();
-    private List<RegistrosLavado> listaHistorialDescendiente => listaHistorial.OrderByDescending(h => h.Fecha).ToList();
-
     private List<Operario> listaOperarios = new();
     private List<Tarea> listaTareas = new();
     private List<Vehiculo> listaVehiculos = new();
 
+    private List<RegistrosLavado> listaHistorialDescendiente => listaHistorial.OrderByDescending(h => h.Fecha).ToList();
     private List<Operario> OperariosLavado => listaOperarios
         .Where(o => o.Seccion != null && o.Seccion.Contains("Lavado", StringComparison.OrdinalIgnoreCase))
         .ToList();
-
     private List<Operario> OperariosParaNomina => OperariosLavado
         .Where(o => listaHistorial.Any(h => h.FkCodigoOperario == o.Codigo))
         .ToList();
 
     private RegistrosLavado? selectedItem;
-    private Operario operarioSeleccionado;
-    private Tarea tareaSeleccionada;
-    private Vehiculo vehiculoSeleccionado;
+    private Operario? operarioSeleccionado;
+    private Tarea? tareaSeleccionada;
+    private Vehiculo? vehiculoSeleccionado;
     private DateTime? fechaSeleccionada = DateTime.Today;
 
     private bool _abreCrearLavado, _abreGenerarNomina, mostrarNomina;
-    private Operario operarioFiltroNomina;
+    private Operario? operarioFiltroNomina;
     private List<RegistrosLavado> nominaFiltrada = new();
     private decimal totalNomina;
-
-    private MudDateRangePicker _picker;
     private DateRange _dateRange = new DateRange(DateTime.Now.Date.AddDays(-15), DateTime.Now.Date);
-
-    private bool _activo = true; 
-
-
-    private bool _procesando = false;
 
     protected override async Task OnInitializedAsync() => await CargarTodosLosDatos();
 
@@ -258,13 +246,14 @@
     {
         if (_procesando) return;
 
-
         await formRegistro.Validate();
         if (formRegistro.IsValid) {
             _procesando = true;
+            if(operarioSeleccionado == null || tareaSeleccionada == null) 
+                return;
+            
             try 
             {
-                            
                 var registro = new RegistrosLavado {
                     Id = selectedItem?.Id ?? 0,
                     FkCodigoOperario = operarioSeleccionado.Codigo,
@@ -294,8 +283,6 @@
             finally {
                 _procesando = false;
             }
-
-            
         }
     }
 
@@ -348,61 +335,11 @@
         _abreCrearLavado = true;
     }
 
-    private async Task ExportarNominaExcel()
-    {
-        if (!nominaFiltrada.Any()) return;
-
-        using (var workbook = new XLWorkbook())
-        {
-            var worksheet = workbook.Worksheets.Add("Nomina");
-
-            // --- ENCABEZADOS ---
-            worksheet.Cell(1, 1).Value = "Fecha";
-            worksheet.Cell(1, 2).Value = "Tarea";
-            worksheet.Cell(1, 3).Value = "Vehículo";
-            worksheet.Cell(1, 4).Value = "Comisión";
-
-            // Estilo encabezado
-            var header = worksheet.Range("A1:D1");
-            header.Style.Font.Bold = true;
-            header.Style.Fill.BackgroundColor = XLColor.LightGray;
-
-            // --- DATOS ---
-            int fila = 2;
-            foreach (var registro in nominaFiltrada)
-            {
-                worksheet.Cell(fila, 1).Value = registro.Fecha.ToString("dd/MM/yyyy");
-                worksheet.Cell(fila, 2).Value = ObtenerNombreTarea(registro.FkIdTarea);
-                worksheet.Cell(fila, 3).Value = ObtenerNombreVehiculo(registro.FkBastidor);
-                worksheet.Cell(fila, 4).Value = registro.ComisionRegistro;
-                worksheet.Cell(fila, 4).Style.NumberFormat.Format = "$ #,##0.00";
-                fila++;
-            }
-
-            // --- TOTAL ---
-            worksheet.Cell(fila, 3).Value = "TOTAL A PAGAR:";
-            worksheet.Cell(fila, 3).Style.Font.Bold = true;
-            worksheet.Cell(fila, 4).Value = totalNomina;
-            worksheet.Cell(fila, 4).Style.Font.Bold = true;
-
-            worksheet.Columns().AdjustToContents(); 
-
-            // --- DESCARGA ---
-            using (var stream = new MemoryStream())
-            {
-                workbook.SaveAs(stream);
-                var content = stream.ToArray();
-                using var streamRef = new DotNetStreamReference(new MemoryStream(content));
-                
-                string fechaInicio = _dateRange.Start?.ToString("yyyyMMdd");
-                string fechaFin = _dateRange.End?.ToString("yyyyMMdd");
-                string nombreArchivo = $"Nomina_{operarioFiltroNomina.Nombre}_{fechaInicio}_a_{fechaFin}.xlsx";
-                
-                await JS.InvokeVoidAsync("downloadFileFromStream", nombreArchivo, streamRef);
-            }
-        }
-    }
-
+    private string ObtenerNombreOperario(string codigo) => listaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
+    private string ObtenerNombreTarea(int id) => listaTareas.FirstOrDefault(t => t.Id == id)?.NombreTarea ?? $"ID: {id}";
+    private string ObtenerNombreVehiculo(string? bastidor) => 
+        listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor)?.DesModelo ?? "N/A";
+    
     private bool _quickFilter(RegistrosLavado x)
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
@@ -444,13 +381,59 @@
             return listaVehiculos;
 
         return listaVehiculos.Where(x => 
-            x.Bastidor.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
-            x.Idv.ToString().Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
-            x.DesMarca.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
-            x.DesModelo.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        (x.Bastidor?.Contains(value, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+        (x.Idv.ToString().Contains(value, StringComparison.InvariantCultureIgnoreCase)) ||
+        (x.DesMarca?.Contains(value, StringComparison.InvariantCultureIgnoreCase) ?? false) ||
+        (x.DesModelo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) ?? false));
     }
 
-    private string ObtenerNombreOperario(string codigo) => listaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
-    private string ObtenerNombreTarea(int id) => listaTareas.FirstOrDefault(t => t.Id == id)?.NombreTarea ?? $"ID: {id}";
-    private string ObtenerNombreVehiculo(string bastidor) => listaVehiculos.FirstOrDefault(v => v.Bastidor == bastidor)?.DesModelo ?? "N/A";
+    private async Task ExportarNominaExcel()
+    {
+        if (!nominaFiltrada.Any()) return;
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("Nomina");
+
+            worksheet.Cell(1, 1).Value = "Fecha";
+            worksheet.Cell(1, 2).Value = "Tarea";
+            worksheet.Cell(1, 3).Value = "Vehículo";
+            worksheet.Cell(1, 4).Value = "Comisión";
+
+            var header = worksheet.Range("A1:D1");
+            header.Style.Font.Bold = true;
+            header.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+            int fila = 2;
+            foreach (var registro in nominaFiltrada)
+            {
+                worksheet.Cell(fila, 1).Value = registro.Fecha.ToString("dd/MM/yyyy");
+                worksheet.Cell(fila, 2).Value = ObtenerNombreTarea(registro.FkIdTarea);
+                worksheet.Cell(fila, 3).Value = ObtenerNombreVehiculo(registro.FkBastidor);
+                worksheet.Cell(fila, 4).Value = registro.ComisionRegistro;
+                worksheet.Cell(fila, 4).Style.NumberFormat.Format = "$ #,##0.00";
+                fila++;
+            }
+
+            worksheet.Cell(fila, 3).Value = "TOTAL A PAGAR:";
+            worksheet.Cell(fila, 3).Style.Font.Bold = true;
+            worksheet.Cell(fila, 4).Value = totalNomina;
+            worksheet.Cell(fila, 4).Style.Font.Bold = true;
+
+            worksheet.Columns().AdjustToContents(); 
+
+            using (var stream = new MemoryStream())
+            {
+                workbook.SaveAs(stream);
+                var content = stream.ToArray();
+                using var streamRef = new DotNetStreamReference(new MemoryStream(content));
+                
+                string fechaInicio = _dateRange.Start?.ToString("yyyyMMdd") ?? "SinFecha";
+                string fechaFin = _dateRange.End?.ToString("yyyyMMdd") ?? "SinFecha";
+                string nombreArchivo = $"Nomina_{operarioFiltroNomina?.Nombre}_{fechaInicio}_a_{fechaFin}.xlsx";
+                
+                await JS.InvokeVoidAsync("downloadFileFromStream", nombreArchivo, streamRef);
+            }
+        }
+    }
 }

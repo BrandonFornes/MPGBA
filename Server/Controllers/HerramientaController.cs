@@ -37,14 +37,13 @@ namespace AdminHerramientas.Server.Controllers
             if (id != herramienta.Id) return BadRequest("El ID de la herramienta no coincide.");
 
             int filasAfectadas = await _context.Herramientas
-               .Where(h => h.Id == herramienta.Id)
-               .ExecuteUpdateAsync(s => s
-                   .SetProperty(h => h.Tipo, herramienta.Tipo)
-               );
+                .Where(h => h.Id == herramienta.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(h => h.Tipo, herramienta.Tipo)
+                );
             if (filasAfectadas == 0) return NotFound();
 
             return Ok();
-
         }
 
         [HttpDelete("{id}")]
@@ -61,6 +60,5 @@ namespace AdminHerramientas.Server.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-
     }
 }

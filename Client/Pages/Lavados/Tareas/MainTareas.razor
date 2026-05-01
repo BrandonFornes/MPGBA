@@ -25,10 +25,8 @@
                 Nueva Tarea
             </MudButton>
 
-            @*Overlay de Crear/Editar Tarea*@
             <MudOverlay Visible="_abreCrearTarea" OnClick="@AbrirCrearTarea" DarkBackground="true" ZIndex="5" />
 
-            @*Popover para el formulario*@
             <MudPopover Open="@_abreCrearTarea" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
 
                 <MudText Typo="Typo.h5" Class="pa-4">
@@ -61,7 +59,6 @@
                                 </MudSelect>
                             }
                             
-
                             <MudCardActions>
                                 <MudButton Variant="Variant.Filled" 
                                             Color="Color.Primary" 
@@ -79,7 +76,6 @@
 
         </MudPaper>
 
-        @*Tabla de Datos*@
         <MudDataGrid T="Tarea"
                         Items="@listaTareas"
                         Filterable="true"
@@ -132,19 +128,21 @@
 </MudGrid>
 
 @code {
-    private string _searchString;
-    private Tarea selectedItem;
-    private List<Tarea> listaTareas = new();
-    private MudForm formulario;
-    public bool _abreCrearTarea;
     private CultureInfo _mexico = new CultureInfo("es-MX");
-
-    private string nombreTarea;
-    private decimal comisionTarea;
+    private string _searchString = "";
+    private bool _procesando = false;
     private bool _activo = true; 
 
-    private bool _procesando = false;
+    private MudForm formulario = default!;
 
+    private List<Tarea> listaTareas = new();
+
+    private Tarea? selectedItem;
+    
+    public bool _abreCrearTarea;
+    private string? nombreTarea;
+    private decimal comisionTarea;
+    
     protected override async Task OnInitializedAsync()
     {
         await CargarDatos();
@@ -183,7 +181,7 @@
                 Tarea tareaAGuardar = new Tarea
                 {
                     Id = selectedItem?.Id ?? 0,
-                    NombreTarea = nombreTarea,
+                    NombreTarea = nombreTarea ?? string.Empty,
                     ComisionTarea = comisionTarea,
                     FechaModificacion = DateTime.Now,
                     UsuarioModifico = 1,
@@ -221,6 +219,11 @@
         }
     }
 
+    public void AbrirCrearTarea() 
+    {
+        if (!_abreCrearTarea) LimpiarFormulario(); 
+        _abreCrearTarea = !_abreCrearTarea;
+    }
 
     private void EditarTarea(Tarea tarea)
     {
@@ -244,11 +247,5 @@
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
         return x.NombreTarea?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
-    }
-
-    public void AbrirCrearTarea() 
-    {
-        if (!_abreCrearTarea) LimpiarFormulario(); 
-        _abreCrearTarea = !_abreCrearTarea;
     }
 }
