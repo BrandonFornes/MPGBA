@@ -12,14 +12,15 @@ Car wash task logging and commission tracking
 Employee authentication via PIN (NIP)
 
 
-Tech Stack
+## Tech Stack
 
-Layer     Technology
-Frontend  Blazor WebAssembly
-Backend   ASP.NET Core 7 (Web API)
-ORM       Entity Framework Core 7
-Database  SQL Server 2022
-Containers Docker / Docker Compose
+| Layer | Technology |
+|---|---|
+| Frontend | Blazor WebAssembly |
+| Backend | ASP.NET Core 7 (Web API) |
+| ORM | Entity Framework Core 7 |
+| Database | SQL Server 2022 |
+| Containers | Docker / Docker Compose |
 
 Prerequisites
 
@@ -88,6 +89,9 @@ dotnet run
 ```
 Project Structure
 
+## Project Structure
+
+```
 AdminHerramientas/
 ├── Client/      # Blazor WebAssembly project (frontend)
 ├── Server/      # ASP.NET Core API, EF Core, migrations
@@ -95,6 +99,7 @@ AdminHerramientas/
 ├── Dockerfile
 ├── docker-compose.yml
 └── README.md
+```
 
 Notes
 
