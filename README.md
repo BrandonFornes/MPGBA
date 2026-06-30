@@ -48,7 +48,8 @@ The password must meet SQL Server's complexity requirements (minimum 8 character
 
 3. Build and start the containers
 
-```bash docker-compose up --build
+```bash
+docker-compose up --build
 ```
 
 This will build the application image, start SQL Server, automatically apply EF Core migrations, and seed the database with sample data.
