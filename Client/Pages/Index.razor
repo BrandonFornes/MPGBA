@@ -1,0 +1,40 @@
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager Nav
+
+@page "/"
+
+<PageTitle>Inicio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+
+    <MudText Typo="Typo.h4" GutterBottom="true">
+        Panel Principal
+    </MudText>
+
+    <MudStack Spacing="3">
+
+        <MudButton Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    FullWidth="true"
+                    OnClick="@(() => Nav.NavigateTo("/herramientas/prestamos"))">
+            Gestor de Inventario de Herramientas
+        </MudButton>
+
+        <MudButton Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    FullWidth="true"
+                    OnClick="@(() => Nav.NavigateTo("/lavados/nominas/registrar_lavado"))">
+            Procesador de Nominas
+        </MudButton>
+
+        <MudButton Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    FullWidth="true"
+                    OnClick="@(() => Nav.NavigateTo("/mantenimientos/mantenimiento"))">
+            Administrador de Mantenimientos Preventivos
+        </MudButton>
+
+    </MudStack>
+
+</MudContainer>

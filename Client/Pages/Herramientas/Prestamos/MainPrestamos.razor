@@ -1,0 +1,458 @@
+@page "/herramientas/prestamos"
+@using MudBlazor
+@using AdminHerramientas.Shared.Models
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<PageTitle>Gestión de Préstamos</PageTitle>
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">Préstamos</MudText>
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Tertiary" Class="mr-3" OnClick="@AbrirPrestamo">
+                Agregar Préstamo
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Info" OnClick="@AbrirDevolucion">
+                Devolver Préstamo
+            </MudButton>
+
+            <MudOverlay Visible="_abrePrestamo" OnClick="@AbrirPrestamo" DarkBackground="true" ZIndex="5" />
+            <MudOverlay Visible="_abreDevolucion" OnClick="@AbrirDevolucion" DarkBackground="true" ZIndex="5" />
+
+            @* --- POPOVER REGISTRAR --- *@
+            <MudPopover Open="@_abrePrestamo" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                <MudText Typo="Typo.h5" Class="pa-4">Registrar Préstamo</MudText>
+                <div style="width: 1000px; height: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formularioPrestamo" Spacing="9">
+                            @* Selección filtrada solo a Mecánica *@
+                            <MudAutocomplete T="Operario"
+                                             Label="Seleccionar Operario"
+                                             @bind-Value="operarioSeleccionado"
+                                             SearchFunc="@SearchOperarios"
+                                             ToStringFunc="@(e => e == null ? null : e.Nombre)"
+                                             Variant="Variant.Outlined"
+                                             Required="true"
+                                             Class="mb-4"
+                                             ResetValueOnEmptyText="true"
+                                             CoerceText="false"
+                                             CoerceValue="false" />
+                            
+                            @if (operarioSeleccionado != null)
+                            {
+                                <MudTextField @bind-Value="motivoPrestamo" Label="Motivo" Variant="Variant.Outlined" Required="true" Class="mb-4" />
+                                <MudTextField @bind-Value="codigoServicio" Label="Código de Servicio" Variant="Variant.Outlined" Required="true" Class="mb-4" />
+
+                                <MudSelect T="HerramientasDetalle" Label="Escoge la(s) herramientas" Variant="Variant.Outlined" 
+                                            MultiSelection="true" Required="true" RequiredError="Seleccione al menos una"
+                                            SearchBox="true"
+                                            SearchBoxAutoFocus="true"
+                                            SearchBoxPlaceholder="Buscar por descripción o etiqueta..."
+                                            Class="mb-4" AnchorOrigin="Origin.BottomCenter"
+                                            ToStringFunc="@(h => h == null ? null : $"{h.Descripcion} - {h.Etiqueta}")"
+                                            @bind-SelectedValues="_herramientasSeleccionadas">
+                                    @foreach (var herramienta in HerramientasDisponibles)
+                                    {
+                                        <MudSelectItem Value="@herramienta">@herramienta.Descripcion</MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                                <MudTextField T="string" Label="NIP de Seguridad" @bind-Value="nipEncargado" 
+                                                InputType="InputType.Password" Variant="Variant.Outlined" 
+                                                Required="true" RequiredError="NIP Requerido" Class="mb-4" />
+
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto"
+                                               StartIcon="@Icons.Material.Filled.Save" OnClick="GuardarPrestamo" Disabled="@_procesando">
+                                                 
+                                    </MudButton>
+                                </MudCardActions>
+                            }
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+            @* --- POPOVER DEVOLUCIÓN --- *@
+            <MudPopover Open="@_abreDevolucion" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+                <MudText Typo="Typo.h5" Class="pa-4">Registrar Devolución</MudText>
+
+                <div style="width: 1000px; height: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formularioDevolucion" Spacing="9">
+                            <MudAutocomplete T="Operario"
+                                             Label="Seleccionar Operario con Prestamo"
+                                             @bind-Value="operarioDevolucion"
+                                             SearchFunc="@SearchOperariosConPrestamos"
+                                             ToStringFunc="@(e => e == null ? null : e.Nombre)"
+                                             Variant="Variant.Outlined"
+                                             Required="true"
+                                             Class="mb-4"
+                                             ResetValueOnEmptyText="true"
+                                             CoerceText="false"
+                                             CoerceValue="false" />
+                          
+                            @if (operarioDevolucion != null)
+                            {
+                                <MudSelect T="PrestamosDetalle" Label="Herramientas a devolver" Variant="Variant.Outlined" 
+                                            MultiSelection="true" Required="true" Class="mb-4"
+                                            ToStringFunc="@(d => d == null ? "" : ObtenerNombreHerramienta(d.FkIdHerramienta))"
+                                            @bind-SelectedValues="_detallesADevolver">
+                                    @foreach (var detalle in ObtenerHerramientasPrestadas(operarioDevolucion.Codigo))
+                                    {
+                                        <MudSelectItem Value="@detalle">@ObtenerNombreHerramienta(detalle.FkIdHerramienta)</MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                                <MudTextField @bind-Value="comentarioDevolucion" Label="Comentario de entrega" Variant="Variant.Outlined" Lines="2" Class="mb-4" />
+                                <MudTextField T="string" Label="NIP Confirmación" @bind-Value="nipDevolucion" InputType="InputType.Password" Variant="Variant.Outlined" Required="true" Class="mb-4" />
+
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Class="ml-auto"
+                                               StartIcon="@Icons.Material.Filled.AssignmentReturn" OnClick="GuardarDevolucion" Disabled="@_procesando">
+                                                @( _procesando ? "Procesando..." : "Procesar Devolución" )
+                                    </MudButton>
+                                </MudCardActions>
+                            }
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+        </MudPaper>
+
+        <MudDataGrid T="Prestamo" Items="@ListaPrestamosDesc" Filterable="true" Sortable="true" QuickFilter="@_quickFilterActivos">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Lista de Préstamos Activos</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchStringActivos" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.IdPrestamos" Title="ID" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.FkCodigoOperario" Title="Operario" Sortable="false" Filterable="false" />
+                <TemplateColumn Title="Mecánico Responsable" Sortable="false" Filterable="false" >
+                    <CellTemplate>
+                        @ObtenerNombreOperario(context.Item.FkCodigoOperario)
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.FechaSolicitud" Title="Fecha Solicitud" Format="dd/MM/yyyy" Sortable="false" Filterable="false" />
+                <TemplateColumn Title="Acciones" Sortable="false" Filterable="false" >
+                    <CellTemplate>
+                        <MudButton 
+                                Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
+                                OnClick="@(() => { AbrirDevolucion(); 
+                                                   operarioDevolucion = ListaOperarios.FirstOrDefault(o => o.Codigo == context.Item.FkCodigoOperario);
+                                                    PrestamoSelected = context.Item;
+                                                })">
+                            Devolver
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+                <HierarchyColumn T="Prestamo" />
+            </Columns>
+            <ChildRowContent>
+                <MudCard Elevation="0" Class="pa-4" Style="background-color: #f5f5f5;">
+                    <MudTable Items="@context.Item.PrestamosDetalles" Context="detalle" Hover="true" Dense="true">
+                        <HeaderContent>
+                            <MudTh>Herramienta</MudTh>
+                            <MudTh>Estado</MudTh>
+                            <MudTh>Fecha de Entrega</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@ObtenerNombreHerramienta(detalle.FkIdHerramienta)</MudTd>
+                            <MudTd>@(detalle.FechaEntrega == null ? "En uso" : "Devuelta")</MudTd>
+                            <MudTd>@(detalle.FechaEntrega?.ToString("dd/MM/yyyy HH:mm") ?? "-")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCard>
+            </ChildRowContent>
+            <PagerContent>
+                <MudDataGridPager T="Prestamo" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
+            </PagerContent>
+        </MudDataGrid>
+
+        <MudDataGrid T="Prestamo" Items="@ListaPrestamosTotalesDesc" Filterable="true" Sortable="true" QuickFilter="@_quickFilterTotales">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Historial TOTAL de Préstamos </MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchStringTotales" Placeholder="Buscar..." Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.IdPrestamos" Title="ID" Sortable="false" Filterable="false"  />
+                <PropertyColumn Property="x => x.FkCodigoOperario" Title="Operario" Sortable="false" Filterable="false"  />
+                <TemplateColumn Title="Mecánico Responsable" Sortable="false" Filterable="false" >
+                    <CellTemplate>
+                        @ObtenerNombreOperario(context.Item.FkCodigoOperario)
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.FechaSolicitud" Title="Fecha Solicitud" Format="dd/MM/yyyy" />
+                <HierarchyColumn T="Prestamo" />
+            </Columns>
+            <ChildRowContent>
+                <MudCard Elevation="0" Class="pa-4" Style="background-color: #f5f5f5;">
+                    <MudTable Items="@context.Item.PrestamosDetalles" Context="detalle" Hover="true" Dense="true">
+                        <HeaderContent>
+                            <MudTh>Herramienta</MudTh>
+                            <MudTh>Estado</MudTh>
+                            <MudTh>Fecha de Entrega</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@ObtenerNombreHerramienta(detalle.FkIdHerramienta)</MudTd>
+                            <MudTd>@(detalle.FechaEntrega == null ? "En uso" : "Devuelta")</MudTd>
+                            <MudTd>@(detalle.FechaEntrega?.ToString("dd/MM/yyyy HH:mm") ?? "-")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCard>
+            </ChildRowContent>
+            <PagerContent>
+                <MudDataGridPager T="Prestamo" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private bool _abrePrestamo, _abreDevolucion;
+    private bool _procesando = false;
+    private MudForm formularioPrestamo, formularioDevolucion;
+    private Operario operarioSeleccionado, operarioDevolucion;
+    private string motivoPrestamo, codigoServicio, nipEncargado, nipDevolucion, comentarioDevolucion;
+
+    private List<Prestamo> ListaPrestamos = new();
+
+    private List<Prestamo> ListaPrestamosDesc => ListaPrestamos
+        .OrderByDescending(p => p.FechaSolicitud)
+        .ToList();
+
+    private List<Prestamo> ListaPrestamosTotales = new();
+
+    private List<Prestamo> ListaPrestamosTotalesDesc => ListaPrestamosTotales
+        .OrderByDescending(p => p.FechaSolicitud)
+        .ToList();
+
+
+    private List<Operario> ListaOperarios = new();
+    private List<HerramientasDetalle> HerramientasDisponibles = new();
+    private List<HerramientasDetalle> ListaTodasHerramientas = new();
+    private IEnumerable<HerramientasDetalle> _herramientasSeleccionadas = new HashSet<HerramientasDetalle>();
+    private IEnumerable<PrestamosDetalle> _detallesADevolver = new HashSet<PrestamosDetalle>();
+    private Dictionary<int, HerramientasDetalle> _diccionarioHerramientas = new();
+    private Prestamo PrestamoSelected { get; set; }
+    private string _searchStringActivos;
+    private string _searchStringTotales;
+
+    private string ObtenerNombreOperario(string codigo) => ListaOperarios.FirstOrDefault(o => o.Codigo == codigo)?.Nombre ?? codigo;
+    private string ObtenerNombreHerramienta(int id) => _diccionarioHerramientas.TryGetValue(id, out var h) ? $"{h.Descripcion} - {h.Etiqueta}" : $"ID: {id}";
+    private List<PrestamosDetalle> ObtenerHerramientasPrestadas(string codigo)
+    {
+        if (PrestamoSelected != null && PrestamoSelected.FkCodigoOperario == codigo)
+        {
+            return PrestamoSelected.PrestamosDetalles.Where(d => d.FechaEntrega == null).ToList();
+        }
+        else
+            return ListaPrestamos.Where(p => p.FkCodigoOperario == codigo).SelectMany(p => p.PrestamosDetalles).Where(d => d.FechaEntrega == null).ToList();
+
+    }
+
+    private List<Operario> Mecanicos => ListaOperarios
+        .Where(o => o.Seccion != null && 
+                (o.Seccion.Contains("Mecanica", StringComparison.OrdinalIgnoreCase) || 
+                o.Seccion.Contains("Mecánica", StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
+    private List<Operario> MecanicosConPrestamos => Mecanicos
+        .Where(m => ListaPrestamos.Any(p => 
+            p.FkCodigoOperario == m.Codigo && 
+            p.PrestamosDetalles.Any(d => d.FechaEntrega == null)))
+        .ToList();
+
+    protected override async Task OnInitializedAsync() => await CargarDatos();
+
+    private async Task CargarDatos() 
+    {
+        try {
+            var t1 = Http.GetFromJsonAsync<List<Prestamo>>("api/prestamos");
+            var t2 = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
+            var t3 = Http.GetFromJsonAsync<List<Operario>>("api/operario");
+            await Task.WhenAll(t1, t2, t3);
+            ListaPrestamosTotales = await t1 ?? new();
+            ListaTodasHerramientas = await t2 ?? new();
+            ListaOperarios = await t3 ?? new();
+            _diccionarioHerramientas = ListaTodasHerramientas.ToDictionary(h => h.Id, h => h);
+            HerramientasDisponibles = ListaTodasHerramientas.Where(h => h.Disponible == true).ToList();
+            ListaPrestamos = ListaPrestamosTotales.Where(p => p.PrestamosDetalles.Any(d => d.FechaEntrega == null)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
+
+    }
+
+    private async Task<bool> ValidarNipEnApi(string codigo, string pin) 
+    {
+        if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(pin)) return false;
+        try { return await Http.GetFromJsonAsync<bool>($"api/nips/validar?operario={codigo}&pin={pin}"); }
+        catch { return false; }
+    }
+
+    private async Task GuardarPrestamo() 
+    {
+        if (_procesando) return;
+
+        await formularioPrestamo.Validate();
+        if (formularioPrestamo.IsValid && _herramientasSeleccionadas.Any())
+        {
+            _procesando = true;
+            try
+            {
+                if (!(await ValidarNipEnApi(operarioSeleccionado.Codigo, nipEncargado)))
+                {
+                    Snackbar.Add("¡NIP Incorrecto! Verifique sus credenciales.", Severity.Error);
+                    return;
+                }
+
+                var p = new Prestamo
+                {
+                    FkCodigoOperario = operarioSeleccionado.Codigo,
+                    FkCodigoEncargado = "1206",
+                    Motivo = motivoPrestamo,
+                    CodigoServicio = codigoServicio,
+                    FechaSolicitud = DateTime.Now,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 1,
+                    Activo = true,
+                    PrestamosDetalles = _herramientasSeleccionadas.Select(h => new PrestamosDetalle { FkIdHerramienta = h.Id, Activo = true, FechaModificacion = DateTime.Now, UsuarioModifico = 1 }).ToList()
+                };
+
+                if ((await Http.PostAsJsonAsync("api/prestamos", p)).IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Préstamo registrado.", Severity.Success);
+                    AbrirPrestamo();
+                    LimpiarFormulario();
+                    await CargarDatos();
+                }
+            }
+            finally
+            {
+                _procesando = false;
+            }
+        }
+    }
+
+    private async Task GuardarDevolucion() 
+    {
+        if (_procesando) return;
+        await formularioDevolucion.Validate();
+        if (formularioDevolucion.IsValid && _detallesADevolver.Any()) {
+            _procesando = true;
+            try
+            {
+                if (!(await ValidarNipEnApi(operarioDevolucion.Codigo, nipDevolucion))) {
+                    Snackbar.Add("NIP de devolución incorrecto.", Severity.Error);
+                    return;
+                }
+                var lista = _detallesADevolver.ToList();
+                lista.ForEach(d => { d.FechaEntrega = DateTime.Now; d.Comentario = comentarioDevolucion; d.FechaModificacion = DateTime.Now; });
+                if ((await Http.PutAsJsonAsync("api/prestamos/devolver", lista)).IsSuccessStatusCode) {
+                    Snackbar.Add("Herramientas devueltas.", Severity.Success);
+                    AbrirDevolucion();
+                    await CargarDatos();
+                }
+            }
+            finally
+            {
+                _procesando = false;
+            }
+
+        }
+    }
+
+    private void LimpiarFormulario()
+    {
+        operarioSeleccionado = null;
+        motivoPrestamo = string.Empty;
+        codigoServicio = string.Empty;
+        nipEncargado = string.Empty;
+        _herramientasSeleccionadas = new HashSet<HerramientasDetalle>();
+    }
+
+    private void LimpiarFormularioDevolucion()
+    {
+        operarioDevolucion = null;
+        PrestamoSelected = null;
+        comentarioDevolucion = string.Empty;
+        nipDevolucion = string.Empty;
+        _detallesADevolver = new HashSet<PrestamosDetalle>();
+    }
+    private async Task<IEnumerable<Operario>> SearchOperarios(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return Mecanicos;
+
+        return Mecanicos.Where(x =>
+            (x.Nombre?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true) ||
+            (x.Codigo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true)
+        );
+    }
+    private async Task<IEnumerable<Operario>> SearchOperariosConPrestamos(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return MecanicosConPrestamos;
+
+        return MecanicosConPrestamos.Where(x =>
+            (x.Nombre?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true) ||
+            (x.Codigo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true)
+        );
+    }
+    private bool _quickFilterActivos(Prestamo x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchStringActivos)) return true;
+
+        if (x.FkCodigoOperario?.Contains(_searchStringActivos, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (ObtenerNombreOperario(x.FkCodigoOperario).Contains(_searchStringActivos, StringComparison.OrdinalIgnoreCase)) return true;
+        if (x.FechaSolicitud.ToString("dd/MM/yyyy").Contains(_searchStringActivos)) return true;
+        
+        return false;
+    }
+
+    private bool _quickFilterTotales(Prestamo x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchStringTotales)) return true;
+
+        if (x.FkCodigoOperario?.Contains(_searchStringTotales, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (ObtenerNombreOperario(x.FkCodigoOperario).Contains(_searchStringTotales, StringComparison.OrdinalIgnoreCase)) return true;
+        if (x.FechaSolicitud.ToString("dd/MM/yyyy").Contains(_searchStringTotales)) return true;
+        
+        return false;
+    }
+    public void AbrirPrestamo() 
+    {
+        _abrePrestamo = !_abrePrestamo;
+        
+        if (!_abrePrestamo) 
+        {
+            LimpiarFormulario();
+        }
+    }
+
+    public void AbrirDevolucion() 
+    {
+        _abreDevolucion = !_abreDevolucion;
+        
+        if (!_abreDevolucion) 
+        {
+            LimpiarFormularioDevolucion();
+        }
+    }
+}

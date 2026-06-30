@@ -1,0 +1,251 @@
+@page "/lavados/tareas"
+
+@using MudBlazor
+@using System.Globalization
+@using AdminHerramientas.Shared.Models
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<PageTitle>Configuración de Tareas</PageTitle>
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">
+            Gestión de Tareas
+        </MudText>
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled"
+                        Size="Size.Large"
+                        Color="Color.Tertiary"
+                        Class="mr-3"
+                        OnClick="@AbrirCrearTarea">
+                Nueva Tarea
+            </MudButton>
+
+            <MudOverlay Visible="_abreCrearTarea" OnClick="@AbrirCrearTarea" DarkBackground="true" ZIndex="5" />
+
+            <MudPopover Open="@_abreCrearTarea" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    @(selectedItem == null ? "Registrar Nueva Tarea" : "Editar Tarea")
+                </MudText>
+
+                <div style="width: 600px; height: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                            
+                            <MudTextField @bind-Value="nombreTarea" 
+                                            Label="Nombre de la Tarea" 
+                                            Variant="Variant.Outlined" 
+                                            Required="true" 
+                                            RequiredError="El nombre es obligatorio" />
+
+                            <MudNumericField @bind-Value="comisionTarea" 
+                                            Label="Comisión ($)" 
+                                            Variant="Variant.Outlined" 
+                                            Format="N2" 
+                                            Culture="@_mexico"
+                                            Required="true" 
+                                            RequiredError="La comisión es obligatoria" />
+                            
+                            @if (selectedItem != null)
+                            {
+                                <MudSelect T="bool" @bind-Value="_activo" Label="Estado" Variant="Variant.Outlined">
+                                    <MudSelectItem Value="true">Activo</MudSelectItem>
+                                    <MudSelectItem Value="false">Inactivo</MudSelectItem>
+                                </MudSelect>
+                            }
+                            
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" 
+                                            Color="Color.Primary" 
+                                            Class="ml-auto" 
+                                            OnClick="GuardarTarea"
+                                            Disabled="@_procesando">
+                                    @( _procesando ? "Procesando..." : (selectedItem == null ? "Guardar" : "Actualizar" ) )
+                                </MudButton>
+                            </MudCardActions>
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+        </MudPaper>
+
+        <MudDataGrid T="Tarea"
+                        Items="@listaTareas"
+                        Filterable="true"
+                        Sortable="true"
+                        QuickFilter="@_quickFilter"
+                        @bind-SelectedItem="selectedItem">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Tareas Disponibles</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString"
+                                Placeholder="Buscar..."
+                                Adornment="Adornment.Start"
+                                Immediate="true"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                IconSize="Size.Medium"
+                                Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.NombreTarea" Title="Descripción" Sortable="false" Filterable="false" />
+                <TemplateColumn Title="Comisión" Sortable="false" Filterable="false">
+                    <CellTemplate>
+                        @context.Item.ComisionTarea.ToString("C", _mexico)
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Acciones" Sortable="false" Filterable="false">
+                    <CellTemplate>
+                        <MudButton
+                            Color="Color.Warning" 
+                            Size="Size.Small" 
+                            OnClick="@(() => EditarTarea(context.Item))">
+                            <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="Tarea" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </MudItem>
+</MudGrid>
+
+@code {
+    private CultureInfo _mexico = new CultureInfo("es-MX");
+    private string _searchString = "";
+    private bool _procesando = false;
+    private bool _activo = true; 
+
+    private MudForm formulario = default!;
+
+    private List<Tarea> listaTareas = new();
+
+    private Tarea? selectedItem;
+    
+    public bool _abreCrearTarea;
+    private string? nombreTarea;
+    private decimal comisionTarea;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try 
+        {
+            listaTareas = await Http.GetFromJsonAsync<List<Tarea>>("api/tareas") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
+    }
+
+    protected async Task GuardarTarea()
+    {
+        if (_procesando) return;
+
+        await formulario.Validate();
+
+        if (formulario.IsValid)
+        {
+            _procesando = true;
+
+            try
+            {
+                if (comisionTarea <= 0)
+                {
+                    Snackbar.Add("Error la comisión debe ser mayor a 0", Severity.Error);
+                    return;
+                }
+
+                Tarea tareaAGuardar = new Tarea
+                {
+                    Id = selectedItem?.Id ?? 0,
+                    NombreTarea = nombreTarea ?? string.Empty,
+                    ComisionTarea = comisionTarea,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 1,
+                    Activo = selectedItem == null ? true : _activo
+                };
+
+                HttpResponseMessage response;
+                
+                if (selectedItem == null)
+                {
+                    response = await Http.PostAsJsonAsync("api/tareas", tareaAGuardar);
+                }
+                else
+                {
+                    response = await Http.PutAsJsonAsync($"api/tareas/{tareaAGuardar.Id}", tareaAGuardar);
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add(selectedItem == null ? "Tarea creada" : "Tarea actualizada", Severity.Success);
+                    await CargarDatos();
+                    LimpiarFormulario();
+                    _abreCrearTarea = false;
+                }
+                else
+                {
+                    Snackbar.Add("Error al procesar la solicitud", Severity.Error);
+                }
+
+            }
+            finally
+            {
+                _procesando = false;
+            }
+        }
+    }
+
+    public void AbrirCrearTarea() 
+    {
+        if (!_abreCrearTarea) LimpiarFormulario(); 
+        _abreCrearTarea = !_abreCrearTarea;
+    }
+
+    private void EditarTarea(Tarea tarea)
+    {
+        selectedItem = tarea;
+        nombreTarea = tarea.NombreTarea;
+        comisionTarea = tarea.ComisionTarea;
+        _activo = tarea.Activo;
+
+        _abreCrearTarea = true;
+    }
+
+    private void LimpiarFormulario()
+    {
+        selectedItem = null;
+        nombreTarea = string.Empty;
+        comisionTarea = 0;
+        _activo = true;
+    }
+
+    private bool _quickFilter(Tarea x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        return x.NombreTarea?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+}

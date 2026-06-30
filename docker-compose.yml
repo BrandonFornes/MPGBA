@@ -1,0 +1,30 @@
+services:
+  # Servicio de la Base de Datos
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver_contenedor
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  # Servicio de tu aplicación Blazor
+  web_app:
+    image: admin-herramientas:latest
+    container_name: blazor_app_contenedor
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ALP;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;
+    depends_on:
+      - sqlserver
+
+volumes:
+  mssql_data:

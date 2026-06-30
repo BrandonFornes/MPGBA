@@ -1,0 +1,324 @@
+﻿@page "/herramientas/ajustes"
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+@inject ISnackbar Snackbar
+
+
+@using AdminHerramientas.Shared.Models
+
+
+<MudGrid Class="mt-5" Justify="Justify.Center">
+    <MudItem xs="10">
+
+        <MudText Typo="Typo.h3" Class="mb-4">
+            Herramientas
+        </MudText>
+
+        <MudPaper Class="pa-4 mb-4">
+            <MudButton Variant="Variant.Filled"
+                        Size="Size.Large"
+                        Color="Color.Tertiary"
+                        Class="mr-3"
+                        OnClick="@AbrirCrearHerramienta">
+                Crear Herramienta
+            </MudButton>
+
+            @*Overlay de Crear Herramienta*@
+            <MudOverlay Visible="_abreCrearHerramienta" OnClick="@AbrirCrearHerramienta" DarkBackground="true" ZIndex="5" />
+
+            @*Popover para crear herramienta*@
+            <MudPopover Open="@_abreCrearHerramienta" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" RelativePanel="true">
+
+                <MudText Typo="Typo.h5" Class="pa-4">
+                    @($"{_modoActual} Herramienta")
+                </MudText>
+
+                <div style="width: 1000px; height: auto;" class="pa-5">
+                    <MudStack Spacing="4">
+                        <MudForm @ref="formulario" Spacing="9">
+                            <MudAutocomplete T="Herramienta"
+                                             Label="Seleccionar Tipo de Herramienta"
+                                             @bind-Value="HerramientaSeleccionada"
+                                             SearchFunc="@SearchTiposHerramientas"
+                                             ToStringFunc="@(e => e == null ? null : e.Tipo)"
+                                             Variant="Variant.Outlined"
+                                             Required="true"
+                                             Class="mb-4"
+                                             ResetValueOnEmptyText="true"
+                                             CoerceText="false"
+                                             CoerceValue="false" />
+                            
+                            <MudTextField @bind-Value="DescripcionHerramienta" Label="Nombre/Descripcion de Herramienta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
+
+                            <MudTextField @bind-Value="EtiquetaHerramienta" Label="Etiqueta" Variant="Variant.Text" Required="true" RequiredError="Campo Obligatorio"></MudTextField>
+
+                            <MudDatePicker @bind-Date="FechaHerramienta"
+                                            Label="Fecha de Compra (Opcional)"
+                                            DateFormat="yyyy-MM-dd" /> 
+                            <MudSelect T="bool" Label="Disponible" @bind-Value="DisponibleHerramienta">
+                                <MudSelectItem Value="true">Si</MudSelectItem>
+                                <MudSelectItem Value="false">No</MudSelectItem>
+                            </MudSelect>
+                        
+                            <MudSelect T="string" Label="Estado de Herramienta" @bind-Value="EstadoHerramienta">
+                                <MudSelectItem Value="@("Operativa")">Operativa</MudSelectItem>
+                                <MudSelectItem Value="@("Perdida")">Perdida</MudSelectItem>
+                                <MudSelectItem Value="@("Dañada")">Dañada</MudSelectItem>
+                                <MudSelectItem Value="@("Mantenimiento")">Mantenimiento</MudSelectItem>
+                            </MudSelect>
+
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled"
+                                           ButtonType="ButtonType.Button"
+                                           Color="@(_modoActual switch { "Eliminar" => Color.Error, "Editar" => Color.Warning, _ => Color.Primary })"
+                                           Class="ml-auto"
+                                           OnClick="GuardarHerramienta"
+                                           Disabled="@_procesando">
+                                           @(_procesando ? "Procesando..." : $"{_modoActual.ToUpper()} HERRAMIENTA")
+                                </MudButton>
+                            </MudCardActions>
+
+                        </MudForm>
+                    </MudStack>
+                </div>
+            </MudPopover>
+
+        </MudPaper>
+
+        <MudDataGrid T="HerramientasDetalle"
+                        Items="@Herramientas"
+                        Filterable="true"
+                        Sortable="true"
+                        QuickFilter="@_quickFilter"
+                        @bind-SelectedItem="HerramientaDetalleSeleccionada">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Lista de Herramientas</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString"
+                                Placeholder="Buscar..."
+                                Adornment="Adornment.Start"
+                                Immediate="true"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                IconSize="Size.Medium"
+                                Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ID" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.Descripcion" Title="Descripcion" Sortable="false" Filterable="false" />
+                <PropertyColumn Property="x => x.TipoNombre" Title="Tipo" Sortable="false" Filterable="false" />
+
+                <TemplateColumn Title="Disponible" Sortable="false" Filterable="false" >
+                    <CellTemplate>
+                        @if (context.Item.Disponible == true)
+                        {
+                            <MudChip Color="Color.Success" Size="Size.Small">
+                                Disponible
+                            </MudChip>
+                        }
+                        else
+                        {
+                            <MudChip Color="Color.Error" Size="Size.Small">
+                                No disponible
+                            </MudChip>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Acciones" Sortable="false" Filterable="false">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning" Size="Size.Small" OnClick="@(() => AbrirModo("Editar",context.Item))"></MudIconButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => AbrirModo("Eliminar",context.Item))"></MudIconButton>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="HerramientasDetalle" 
+                        RowsPerPageString="Filas por página:" 
+                        InfoFormat="{first_item}-{last_item} de {all_items}" 
+                        AllItemsText="Todos" />
+            </PagerContent>
+
+        </MudDataGrid>
+    </MudItem>
+</MudGrid>
+
+@code {
+    public string EtiquetaHerramienta { get; set; }
+    public string DescripcionHerramienta { get; set; }
+    public DateTime? FechaHerramienta { get; set; }
+    public bool DisponibleHerramienta { get; set; }
+    public string EstadoHerramienta { get; set; }
+    private Herramienta HerramientaSeleccionada;
+    MudForm formulario;
+    private bool _procesando = false;
+
+    private string _searchString;
+    private string _modoActual = "Crear";
+    private HerramientasDetalle HerramientaDetalleSeleccionada;
+    private List<HerramientasDetalle> Herramientas = new();
+    private List<Herramienta> TiposHerramientas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try 
+        {
+            DisponibleHerramienta = true;
+            EstadoHerramienta = "Operativa";
+            var resDetalles = Http.GetFromJsonAsync<List<HerramientasDetalle>>("api/herramientasdetalles");
+            var resTipos = Http.GetFromJsonAsync<List<Herramienta>>("api/herramienta");
+
+            await Task.WhenAll(resDetalles, resTipos);
+
+            Herramientas = await resDetalles ?? new();
+            TiposHerramientas = await resTipos ?? new();
+
+            var dicTipos = TiposHerramientas.ToDictionary(t => t.Id, t => t.Tipo);
+
+            foreach (var h in Herramientas)
+            {
+                if (dicTipos.TryGetValue(h.FkIdHerramienta ?? 0, out var nombreTipo))
+                {
+                    h.TipoNombre = nombreTipo;
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al cargar datos: " + ex.Message, Severity.Error);
+        }
+    }
+
+    protected async Task GuardarHerramienta()
+    {
+        if (_procesando) return;
+        await formulario.Validate();
+
+        if (formulario.IsValid)
+        {
+            _procesando = true;
+
+            try
+            {
+                HerramientasDetalle herramientasDetalle = new HerramientasDetalle
+                {
+                    Id = HerramientaDetalleSeleccionada?.Id ?? 0,
+                    FkIdHerramienta = TiposHerramientas.FirstOrDefault(x => x.Tipo == HerramientaSeleccionada.Tipo)?.Id ?? 0,
+                    Descripcion = DescripcionHerramienta,
+                    FechaCompra = FechaHerramienta,
+                    Disponible = DisponibleHerramienta,
+                    Estado = EstadoHerramienta,
+                    Etiqueta = EtiquetaHerramienta,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModifico = 0,
+                    Activo = true
+                };
+
+                HttpResponseMessage response = _modoActual switch
+                {
+                    "Crear" => await Http.PostAsJsonAsync("api/herramientasdetalles", herramientasDetalle),
+                    "Editar" => await Http.PutAsJsonAsync($"api/herramientasdetalles/{herramientasDetalle.Id}", herramientasDetalle),
+                    "Eliminar" => await Http.DeleteAsync($"api/herramientasdetalles/{herramientasDetalle.Id}"),
+                    _ => throw new InvalidOperationException("Modo no válido")
+                };
+
+
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await CargarDatos();
+                    AbrirCrearHerramienta();
+                    Snackbar.Add($"Operacion realizada con éxito.", Severity.Success);
+                }
+            }
+            finally
+            {
+                _procesando = false;
+            }
+        }
+    }
+    private void AbrirModo(string modo, HerramientasDetalle item = null)
+    {
+        _modoActual = modo;
+        AbrirCrearHerramienta();
+        if (item != null)
+        {
+            HerramientaDetalleSeleccionada = item;
+            DescripcionHerramienta = item.Descripcion;
+            EtiquetaHerramienta = item.Etiqueta;
+            FechaHerramienta = item.FechaCompra;
+            DisponibleHerramienta = item.Disponible ?? true;
+            EstadoHerramienta = item.Estado;
+            HerramientaSeleccionada = TiposHerramientas.FirstOrDefault(t => t.Id == item.FkIdHerramienta);
+        }
+        else
+        {
+            limpiarFormulario();
+        }
+    }
+
+    private async Task<IEnumerable<Herramienta>> SearchTiposHerramientas(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return TiposHerramientas;
+
+        return TiposHerramientas.Where(x =>
+            (x.Tipo?.Contains(value, StringComparison.InvariantCultureIgnoreCase) == true));
+    }
+
+    private bool _quickFilter(HerramientasDetalle x)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.Descripcion?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.Etiqueta?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.TipoNombre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        return false;
+    }
+
+
+    public bool _abreCrearHerramienta;
+
+    public void AbrirCrearHerramienta()
+    {
+        if (_abreCrearHerramienta)
+        {
+            _abreCrearHerramienta = false;
+            limpiarFormulario();
+        }
+        else
+            _abreCrearHerramienta = true;
+    }
+   
+    public void limpiarFormulario()
+    {
+        _modoActual = "Crear";
+        DisponibleHerramienta = true;
+        DescripcionHerramienta = "";
+        EtiquetaHerramienta = "";
+        EstadoHerramienta = "Operativa";
+        HerramientaSeleccionada = null;
+        FechaHerramienta = null;
+        HerramientaDetalleSeleccionada = null;
+        
+    }
+
+}
