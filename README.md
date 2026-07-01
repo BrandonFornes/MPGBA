@@ -2,14 +2,28 @@ AdminHerramientas
 
 A tool inventory, employee tool-lending, and vehicle maintenance management system for an automotive workshop. Built with Blazor WebAssembly, .NET 7, Entity Framework Core, and SQL Server, fully containerized with Docker.
 
-Features
+## Core Modules & Features
+## Menu
+<p align="center">
+  <img src="images/menu.png" width="84%" alt="Menu" />
+</p>
 
-Company, dealership, and vehicle management
-Tool inventory tracking and availability status
-Tool lending/checkout records for employees
-Vehicle maintenance history
-Car wash task logging and commission tracking
-Employee authentication via PIN (NIP)
+## 1. Tool Management & Loan Control
+<p align="center">
+  <img src="images/tools.png" width="84%" alt="Active tools" />
+  <img src="images/lend.png" width="84%" alt="Loans" />
+</p>
+
+### 2. Vehicle Washing & Commission Tracking
+<p align="center">
+  <img src="images/tasks.png" width="84%" alt="Washing tasks" />
+</p>
+
+### 3. Fleet Maintenance & Interval Alerts
+<p align="center">
+  <img src="images/vehicles.png" width="84%" alt="Active Vehicles" />
+  <img src="images/maintenance.png" width="84%" alt="Maintenance" />
+</p>
 
 
 ## Tech Stack
@@ -100,9 +114,3 @@ AdminHerramientas/
 ├── docker-compose.yml
 └── README.md
 ```
-
-Notes
-
-
-Entity Framework migrations are applied automatically on container startup (Database.Migrate()); no manual migration step is required.
-Sample data is only inserted if the tables are empty, so it's safe to restart the container without duplicating data.
